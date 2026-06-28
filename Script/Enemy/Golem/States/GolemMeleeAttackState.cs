@@ -1,6 +1,6 @@
 using UnityEngine;
 
-public class GolemMeleeAttackState : GolemPreMeleeAttackState
+public class GolemMeleeAttackState : GolemBaseState
 {
     private readonly int AttackHash = Animator.StringToHash("NormalAttack");
 
@@ -13,36 +13,53 @@ public class GolemMeleeAttackState : GolemPreMeleeAttackState
     private float attackTime = 0.72f;
     private float attackFinTime = 0.8f;
 
+    enum MeleeState
+    {
+        Ready, Attack, Recover
+    }
+
+    MeleeState state;
+
      public override void Enter()
     {
         stateMachine.Animator.CrossFadeInFixedTime(AttackHash, TransitionDuration);
-        attacked = false;
-        attackFinished = false;
+        state = MeleeState.Ready;
         stateMachine.sem.playEnemySE(EnemySEtype.GolemMeleeReady);
     }
 
     public override void Tick(float deltaTime)
     {   
-
-        if(attacked==false && GetNormalizedTime(stateMachine.Animator, "NormalAttack")>=attackTime){
-            attacked = true;
-            stateMachine.hitManager.HitBoxEnable(GolemAttackType.Melee);
-            stateMachine.sem.playEnemySE(EnemySEtype.GolemMeleeAttack);
-            Debug.Log("MeleeAttack!");
-        }
-        else if(attackFinished == false && GetNormalizedTime(stateMachine.Animator, "NormalAttack")>=attackFinTime){
-            Vector3 playerPos = stateMachine.Player.transform.position;
-            Vector3 attackPoint = stateMachine.NA_target.transform.position;
-            float dist = Vector3.Distance(attackPoint, playerPos);
-            if(dist<=4.0f){
-                PlayerHP.instance.DealDamage(stateMachine.GetAttackPower());
-            }
-            //stateMachine.hitManager.HitBoxDisable(GolemAttackType.Melee);
-            attackFinished = true;
-        }
-        else if(GetNormalizedTime(stateMachine.Animator, "NormalAttack")>=1){
-            stateMachine.SwitchState(new GolemChasingState(stateMachine));
-            return;
+        float elapsed = GetNormalizedTime(stateMachine.Animator, "NormalAttack");
+        
+        switch(state)
+        {
+            case MeleeState.Ready:
+                if(elapsed >= attackTime){
+                    stateMachine.hitManager.HitBoxEnable(GolemAttackType.Melee);
+                    stateMachine.sem.playEnemySE(EnemySEtype.GolemMeleeAttack);
+                    state = MeleeState.Attack;
+                }
+                break;
+            case MeleeState.Attack :
+                if(elapsed>=attackFinTime)
+                {
+                    Vector3 playerPos = stateMachine.Player.transform.position;
+                    Vector3 attackPoint = stateMachine.NA_target.transform.position;
+                    float dist = Vector3.Distance(attackPoint, playerPos);
+                    if(dist<=4.0f){
+                        PlayerHP.instance.DealDamage(stateMachine.GetAttackPower());
+                    }
+                    state = MeleeState.Recover;
+                }
+                break;
+            case MeleeState.Recover :
+                if(elapsed>=1.0f){
+                    stateMachine.SwitchState(new GolemChasingState(stateMachine));
+                    return;
+                }
+                break;
+            default :
+                break;
         }
     }
 

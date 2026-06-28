@@ -2,12 +2,13 @@ using UnityEngine;
 
 public abstract class EnemyState
 {
+    //ステート開始
     public abstract void Enter();
-
+    //ステート実行
     public abstract void Tick(float deltaTime);
-
+    //ステート終了
     public abstract void Exit();
-
+    //モーション状況返却
     protected float GetNormalizedTime(Animator animator, string tagName)
     {
         AnimatorStateInfo currentInfo = animator.GetCurrentAnimatorStateInfo(0);

@@ -10,136 +10,130 @@
  */
 using UnityEngine;
 using UnityEngine.InputSystem.XR;
-using UnityEngine.Rendering;
 
 public class NadirAttackState : NadirBaseState
 {
     public NadirAttackState(NadirStateMachine stateMachine) : base(stateMachine) { }
 
-    private bool stepPreinput;
-
+    //現在の攻撃
     AttackProfile currentAttack;
 
+    //先行入力状態
+    enum InputBuffer
+    {
+        none, Step, Combo
+    }
+    InputBuffer buffer;
+
+    //攻撃の現在の段階
+    enum AttackPhase
+    {
+        Ready, Attack, Recover
+    }
+    AttackPhase phase;
+
+    //現在コンボの何番目か
     int comboIndex;
 
-    bool hasCombo;
-
+    //ステート開始
     public override void Enter()
     {
         stateMachine.action = "Attack";
-        
-        stateMachine.attackFrames = stateMachine.attackTotalFrames;
 
-        comboIndex = 0;
-
-        this.stepPreinput = false;
-
+        //武器設定
         if (stateMachine.weapon.TryGetComponent<WeaponController>(out WeaponController Weapon))
         {
             Weapon.hit += WeaponHit;
+            Weapon.PowerUpdate(stateMachine.WeaponPower);
         }
 
         stateMachine.weapon.GetComponent<Collider>().enabled = false;
+
+        comboIndex = 0;
 
         StartAttack();
 
     }
 
+    //先行入力を受ける
+    void HandleInput()
+    {
+        if (stateMachine.playerAttack.WasPressedThisFrame())
+        {
+            buffer = InputBuffer.Combo;
+        }
+
+        if (stateMachine.playerStep.WasPressedThisFrame())
+        {
+            buffer = InputBuffer.Step;
+        }
+
+        if (stateMachine.playerMove.IsPressed())
+        {
+            stateMachine.moveDirection = stateMachine.playerMove.ReadValue<Vector2>();
+        }
+    }
+    //先行入力を適用
+    void TryBufferedInput()
+    {
+        switch(buffer)
+        {
+            case InputBuffer.Combo :
+                if(phase == AttackPhase.Recover){
+                    comboIndex = (comboIndex + 1)%stateMachine.comboData.attackDatas.Count;
+                    StartAttack();
+                }
+            break;
+            case InputBuffer.Step :
+                if(CanCancel())
+                {
+                    stateMachine.SwitchState(new NadirStepState(stateMachine));
+                }
+                break;
+            default :
+                break;
+        }
+    }
+    //更新
     public override void Tick(float deltaTime)
     {
         float t = stateMachine.mAnimator.GetNormalizedTime("Attack");
 
-        if (stateMachine.attackFrames > 0)
+        HandleInput();
+        TryBufferedInput();
+
+        switch(phase)
         {
-            //攻撃キャンセル
-            if (stateMachine.playerStep.WasPressedThisFrame())
-            {
-                if (stateMachine.canCancelAttack)
+            default :
+                break;
+            case AttackPhase.Ready :
+                //攻撃フレームなら、コライダーを有効化にする
+                if(t>= currentAttack.activeFrame)
                 {
-                    stateMachine.SwitchState(new NadirStepState(stateMachine));
+                    phase = AttackPhase.Attack;
+                    stateMachine.weapon.GetComponent<Collider>().enabled = true;
+                    PlayerSound.Instance.slash();
                 }
-                else
+                break;
+            case AttackPhase.Attack :
+                //回復フレームなら、コライダーを無効化にする
+                if(t>=currentAttack.recoverFrame)
                 {
-                    stepPreinput = true;
+                    stateMachine.weapon.GetComponent<Collider>().enabled = false;
+                    phase = AttackPhase.Recover;
                 }
-            }
-
-            if (stateMachine.playerMove.IsPressed())
-            {
-                stateMachine.moveDirection = stateMachine.playerMove.ReadValue<Vector2>();
-            }
-
-            if (stateMachine.playerAttack.WasPressedThisFrame())
-            {
-                hasCombo = true;
-            }
-
-            if(hasCombo){
-            
-            if(t >= currentAttack.recoverFrame)
-            {
-                stateMachine.attackFrames = stateMachine.attackTotalFrames;
-                comboIndex = (comboIndex + 1)%stateMachine.comboData.attackDatas.Count;
-                StartAttack();
-            }   
-            }
-        return;
-        }
-
-        if(comboIndex==stateMachine.comboData.attackDatas.Count-1){
-            if(t<1.0){
-                return;
-            }
-        }
-
-        stateMachine.SwitchState(new NadirIdleState(stateMachine));
-        
-        
+            break;
+            case AttackPhase.Recover :
+                //予約された先行入力がないと、モーション終了後Idleへ
+                if(t>=1.0){
+                    stateMachine.SwitchState(new NadirIdleState(stateMachine));
+                }
+            break;
+        }        
     }
 
     public override void FixedTick(float deltaTime)
     {
-        if (stateMachine.attackFrames > 0)
-        {
-            stateMachine.attackFrames--;
-            //stateMachine.mRigid.linearVelocity = new Vector3(0, -0.5f, 0);
-
-            //攻撃モーション後リカバーフレーム
-            if (stateMachine.attackFrames <= stateMachine.attackRecoverFrames)
-            {
-                if (stepPreinput){
-                    stateMachine.SwitchState(new NadirStepState(stateMachine));
-                }
-            }
-
-            //攻撃モーション中フレーム
-            else if (stateMachine.attackFrames == stateMachine.attackTotalFrames - stateMachine.attackCancelFrames)
-            {
-                //Debug.Log("enabled");[
-                stateMachine.weapon.GetComponent<Collider>().enabled = true;
-                PlayerSound.Instance.slash();
-            }
-            else if (stateMachine.attackFrames < stateMachine.attackTotalFrames - stateMachine.attackCancelFrames)
-            {   
-                //ジャンが追加しました。
-                //武器の攻撃力を現在の攻撃力でアップデートします。
-                if(stateMachine.weapon.TryGetComponent<WeaponController>(out WeaponController Weapon))    
-                {
-                    Weapon.PowerUpdate(stateMachine.WeaponPower);
-                }
-            }
-
-            //攻撃モーション前キャンセルフレーム
-            else
-            {
-                stateMachine.weapon.GetComponent<Collider>().enabled = false;
-                if (stepPreinput)
-                {
-                    stateMachine.SwitchState(new NadirStepState(stateMachine));
-                }
-            }
-
-        }
     }
 
     public override void Exit()
@@ -148,11 +142,12 @@ public class NadirAttackState : NadirBaseState
 
         stateMachine.mAnimator.ResetAttack();
 
+        //武器の衝突判定によって必殺ゲージが貯めたことを無効化にする
         if (stateMachine.weapon.TryGetComponent<WeaponController>(out WeaponController Weapon))
         {
             Weapon.hit -= WeaponHit;
         }
-
+        //念の為コライダーオフ
         stateMachine.weapon.GetComponent<Collider>().enabled = false;
 
     }
@@ -163,10 +158,16 @@ public class NadirAttackState : NadirBaseState
         stateMachine.ChargeSuperGauge();
 
     }
-
+    //現在攻撃キャンセルができるか
+    private bool CanCancel()
+    {
+        return phase!=AttackPhase.Attack;    
+    }
+    //攻撃開始（現在の攻撃にコンボデータを適用する)
     protected void StartAttack()
     {
-        hasCombo = false;
+        phase = AttackPhase.Ready;
+        buffer = InputBuffer.none;
         currentAttack = stateMachine.comboData.attackDatas[comboIndex];
         stateMachine.mAnimator.PlayMotion(currentAttack.motionTag);
     }
