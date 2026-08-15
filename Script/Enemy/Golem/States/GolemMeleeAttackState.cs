@@ -4,58 +4,52 @@ public class GolemMeleeAttackState : GolemBaseState
 {
     private readonly int AttackHash = Animator.StringToHash("NormalAttack");
 
-    private const float TransitionDuration = 0.1f;
+    private const float TransitionDuration = 0.03f;
 
     public GolemMeleeAttackState(GolemStateMachine stateMachine) : base(stateMachine) { }
 
-    private bool attacked; 
-    private bool attackFinished;
-    private float attackTime = 0.72f;
+    private float attackTime = 0.78f;
     private float attackFinTime = 0.8f;
 
-    enum MeleeState
+    enum AttackPhase
     {
-        Ready, Attack, Recover
+        Ready, Attack, Recover, Finish
     }
 
-    MeleeState state;
+    AttackPhase phase;
 
-     public override void Enter()
+    public override void Enter()
     {
         stateMachine.Animator.CrossFadeInFixedTime(AttackHash, TransitionDuration);
-        state = MeleeState.Ready;
-        stateMachine.sem.playEnemySE(EnemySEtype.GolemMeleeReady);
+        phase = AttackPhase.Ready;
+        SoundPlayer.Instance.PlaySE("G_MeleeReady");
     }
 
     public override void Tick(float deltaTime)
     {   
         float elapsed = GetNormalizedTime(stateMachine.Animator, "NormalAttack");
         
-        switch(state)
+        switch(phase)
         {
-            case MeleeState.Ready:
+            case AttackPhase.Ready:
                 if(elapsed >= attackTime){
-                    stateMachine.hitManager.HitBoxEnable(GolemAttackType.Melee);
-                    stateMachine.sem.playEnemySE(EnemySEtype.GolemMeleeAttack);
-                    state = MeleeState.Attack;
+                    
+                    SoundPlayer.Instance.PlaySE("G_MeleeAttack");
+                    stateMachine.hitboxController.HitBoxEnable(GolemAttackType.Melee);
+                    phase = AttackPhase.Attack;
                 }
                 break;
-            case MeleeState.Attack :
+            case AttackPhase.Attack :
                 if(elapsed>=attackFinTime)
                 {
-                    Vector3 playerPos = stateMachine.Player.transform.position;
-                    Vector3 attackPoint = stateMachine.NA_target.transform.position;
-                    float dist = Vector3.Distance(attackPoint, playerPos);
-                    if(dist<=4.0f){
-                        PlayerHP.instance.DealDamage(stateMachine.GetAttackPower());
-                    }
-                    state = MeleeState.Recover;
+                    phase = AttackPhase.Recover;
+                    stateMachine.hitboxController.HitBoxDisable(GolemAttackType.Melee);
                 }
                 break;
-            case MeleeState.Recover :
+            case AttackPhase.Recover :
                 if(elapsed>=1.0f){
                     stateMachine.SwitchState(new GolemChasingState(stateMachine));
-                    return;
+                    phase = AttackPhase.Finish;
                 }
                 break;
             default :
@@ -65,6 +59,7 @@ public class GolemMeleeAttackState : GolemBaseState
 
     public override void Exit()
     {
+        stateMachine.hitboxController.HitBoxDisable(GolemAttackType.Melee);
         stateMachine.coolManager.MeleeAttackCoolDownOn();
     }
 }

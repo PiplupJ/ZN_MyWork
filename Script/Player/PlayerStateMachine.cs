@@ -41,7 +41,7 @@ public class PlayerStateMachine : MonoBehaviour
     {
         if (currentPlayerState != null)
         {
-            currentPlayerState.FixedTick(Time.deltaTime);
+            currentPlayerState.FixedTick(Time.fixedDeltaTime);
         }
     }
 }

@@ -13,7 +13,7 @@ public class GolemPreLaserAttackState : GolemBaseState
     {
         stateMachine.Animator.CrossFadeInFixedTime(AttackHash, TransitionDuration);
      
-        stateMachine.sem.playEnemySE(EnemySEtype.GolemLaserReady);
+        SoundPlayer.Instance.PlaySE("G_LaserCharge");
     }
 
 

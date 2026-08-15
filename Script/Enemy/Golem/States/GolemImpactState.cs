@@ -10,7 +10,7 @@ public class GolemImpactState : GolemBaseState
 
     public override void Enter()
     {
-        stateMachine.sem.playEnemySE(EnemySEtype.GolemImpact);
+        SoundPlayer.Instance.PlaySE("G_Impact");
         stateMachine.Animator.CrossFadeInFixedTime(ImpactHash, CrossFadeDuration);
     }
 
