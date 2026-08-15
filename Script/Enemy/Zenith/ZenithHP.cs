@@ -1,27 +1,19 @@
 using UnityEngine;
 using System;
-using Random = UnityEngine.Random; 
 
-public class ZenithHP : MonoBehaviour
+public class ZenithHP : MonoBehaviour, IDamageable
 {
    [SerializeField] private int maxHealth = 200;
-   [field: SerializeField] public ZenithPhase phase { get; private set; }
-
-   [SerializeField] private AudioSource audioSource;
-
-    [SerializeField] private AudioClip[] HitSE;
-    int currSE;
-    int prevSE;
 
     private int health;
 
     mainUI mui;
-
-    private bool evaded;
     
     public event Action OnTakingDamage;
     public event Action OnImpact; //変身
     public event Action Death;
+
+    [SerializeField] private int hitSoundCount = 3;
 
     private void Start()
     {
@@ -30,60 +22,39 @@ public class ZenithHP : MonoBehaviour
         mui = main.GetComponent<mainUI>();
     }
 
-    public void DealDamage(int damage)
+    public void TakeDamage(AttackInfo attack)
+    {
+        if(attack.type == AttackType.Counter){
+            OnImpact?.Invoke();
+        }
+        DealDamage(attack.damage);
+    }
+
+    private void DealDamage(int damage)
     {
         if(health<=0){return;}
         
-        evaded = false;
-
-        OnTakingDamage.Invoke();
-
-        if(evaded == true)
-        {
-            Debug.Log("Zenithが攻撃を避けた！");
-            return;
-        }
         health = Mathf.Max(health - damage, 0);
+
+        OnTakingDamage?.Invoke();
         PlayHitSound();
-        //hitCount++;
 
-        if(health<=maxHealth/10&&this.phase==ZenithPhase.Phase1)
+        if(health<=0)
         {
-            OnImpact.Invoke();
+            Death?.Invoke();
         }
-        else if(health<=0)
-        {
-            if(Death!=null)
-            {
-                Death.Invoke();
-            }
-        }
-
-        Debug.Log(health);
 
         mui.BoseHP(maxHealth, health);
     }
 
-    public void ResetImpactCount()
-    {
-        //this.hitCount = 0;
-    }
-
-    public void AttackEvaded()
-    {
-        evaded = true;
-    }
-
     private void PlayHitSound()
     {
-        currSE = Random.Range(0, this.HitSE.Length)%this.HitSE.Length;
-        if(prevSE == currSE)
-        {
-            if(prevSE<=0) { currSE +=1;}
-            else if(prevSE>=this.HitSE.Length - 1) { currSE -=1;}
-        }
-        audioSource.PlayOneShot(HitSE[currSE]);
+        string se = "Z_Hit"+UnityEngine.Random.Range(1, hitSoundCount).ToString();
+        SoundPlayer.Instance.PlaySE(se);       
+    }
 
-        this.prevSE = this.currSE;
+    public float GetHealthRatio()
+    {
+        return (float)health/(float)maxHealth;
     }
 }
