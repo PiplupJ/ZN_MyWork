@@ -3,23 +3,15 @@ using System;
 using Random = UnityEngine.Random;
 
 
-public class GolemHP : MonoBehaviour
+public class GolemHP : MonoBehaviour, IDamageable
 {
     [SerializeField] private int maxHealth = 200;
 
     private int health;
 
-    [SerializeField] private AudioSource audioSource;
-
-    [SerializeField] private AudioClip[] HitSE;
-    int currSE;
-    int prevSE;
+    [SerializeField] private int hitSoundCount;
 
     mainUI mui;
-
-    public int ImpactCount = 3;
-
-    private int hitCount = 0;
 
     public event Action OnImpact;
     //public event Action TakingDamage;
@@ -32,17 +24,22 @@ public class GolemHP : MonoBehaviour
         mui = main.GetComponent<mainUI>();
     }
 
-    public void DealDamage(int damage)
+    public void TakeDamage(AttackInfo attack)
+    {
+        if (health <= 0) return;   
+
+        if(attack.type == AttackType.Counter){
+            OnImpact?.Invoke();
+        }
+        DealDamage(attack.damage);
+    }
+
+    private void DealDamage(int damage)
     {
         if(health<=0){return;}
 
-        //if(lastHitFrame == Time.frameCount){return;}
-
-        //lastHitFrame = Time.frameCount;
         health = Mathf.Max(health - damage, 0);
         PlayHitSound();
-        
-        hitCount++;
 
         if(health<=0)
         {
@@ -51,32 +48,15 @@ public class GolemHP : MonoBehaviour
                 Death.Invoke();
             }
         }
-        else if(hitCount==ImpactCount)
-        {
-            OnImpact.Invoke();
-        }
-
-        Debug.Log(health);
-
+        Debug.Log("GolemHP is"+health);
         mui.BoseHP(maxHealth, health);
   
     }
 
-    public void ResetImpactCount()
-    {
-        this.hitCount = 0;
-    }
 
     private void PlayHitSound()
     {
-        currSE = Random.Range(0, this.HitSE.Length)%this.HitSE.Length;
-        if(prevSE == currSE)
-        {
-            if(prevSE<=0) { currSE +=1;}
-            else if(prevSE>=this.HitSE.Length - 1) { currSE -=1;}
-        }
-        audioSource.PlayOneShot(HitSE[currSE]);
-
-        this.prevSE = this.currSE;
+        string key = "G_Hit"+UnityEngine.Random.Range(1, hitSoundCount).ToString();
+        SoundPlayer.Instance.PlaySE(key);
     }
 }

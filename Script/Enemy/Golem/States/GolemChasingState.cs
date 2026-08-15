@@ -55,52 +55,6 @@ public class GolemChasingState : GolemBaseState
             GolemChase(deltaTime);
         }
 
-        /*
-        if(!InChaseRange())
-        {
-            stateMachine.SwitchState(new GolemIdleState(stateMachine));
-            return;
-        }
-        if(InMeleeAttackRange())
-        {
-            if(stateMachine.coolManager.CanMeleeAttack())
-            {
-                stateMachine.SwitchState(new GolemMeleeAttackState(stateMachine));
-                return;
-            }
-            else
-            {
-                stateMachine.SwitchState(new GolemPreLaserAttackState(stateMachine));
-                return;
-            }
-        }
-        else if(InLaserAttackRange())
-        {
-            if(stateMachine.coolManager.CanLaserAttack())
-            {
-                stateMachine.SwitchState(new GolemPreLaserAttackState(stateMachine));
-                return;
-            }
-            else if(stateMachine.coolManager.CanRockfallAttack())
-            {
-                stateMachine.SwitchState(new GolemRockfallAttackState(stateMachine));
-                return;
-            }
-            else {
-                    GolemChase(true, deltaTime);
-                }    
-        }
-        else{
-            if(stateMachine.coolManager.CanRockfallAttack())
-            {
-                stateMachine.SwitchState(new GolemRockfallAttackState(stateMachine));
-                return;
-            }
-            else {
-                GolemChase(true, deltaTime);
-            }
-        }
-        */
     }
 
     public override void Exit()

@@ -10,7 +10,7 @@ public class GolemLaserAttackState : GolemBaseState
    
     enum LaserState
     {
-        Ready, Fire, Recover
+        Ready, Fire, Recover, Finish
     }
 
     LaserState state;
@@ -31,28 +31,32 @@ public class GolemLaserAttackState : GolemBaseState
         {
             case LaserState.Ready :
                 if(elapsed >=0.1f){
-                    stateMachine.hitManager.HitBoxEnable(GolemAttackType.Laser);
-                    stateMachine.sem.playEnemySE(EnemySEtype.GolemLaserShot);
+                    stateMachine.hitboxController.HitBoxEnable(GolemAttackType.Laser);
+                    SoundPlayer.Instance.PlaySE("G_LaserShot");
                     state = LaserState.Fire;
                 }
                 break;
             case LaserState.Fire :
                 if(elapsed>=0.3f){
-                    stateMachine.hitManager.HitBoxDisable(GolemAttackType.Laser);
+                    stateMachine.hitboxController.HitBoxDisable(GolemAttackType.Laser);
                     state = LaserState.Recover;
                 }
-            break;
+                break;
             case LaserState.Recover :
                 if(elapsed >=1){
-                    stateMachine.coolManager.LaserAttackCoolDownOn();
+                    state = LaserState.Finish;
                     stateMachine.SwitchState(new GolemChasingState(stateMachine));
                 }
+                break;
+            default :
+                break;
             
         }
     }
 
     public override void Exit()
     {
-
+        stateMachine.hitboxController.HitBoxDisable(GolemAttackType.Laser);
+        stateMachine.coolManager.LaserAttackCoolDownOn();
     }
 }

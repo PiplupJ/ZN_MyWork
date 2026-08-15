@@ -16,7 +16,6 @@ public class GolemBreakState : GolemBaseState
     public override void Tick(float deltaTime)
     {
         if(GetNormalizedTime(stateMachine.Animator, "Break")>=1){
-            stateMachine.health.ResetImpactCount();
             stateMachine.SwitchState(new GolemIdleState(stateMachine));
             return;
         }

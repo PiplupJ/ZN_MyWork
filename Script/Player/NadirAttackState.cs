@@ -16,7 +16,7 @@ public class NadirAttackState : NadirBaseState
     public NadirAttackState(NadirStateMachine stateMachine) : base(stateMachine) { }
 
     //現在の攻撃
-    AttackProfile currentAttack;
+    AttackData currentAttack;
 
     //先行入力状態
     enum InputBuffer
@@ -28,7 +28,7 @@ public class NadirAttackState : NadirBaseState
     //攻撃の現在の段階
     enum AttackPhase
     {
-        Ready, Attack, Recover
+        Ready, Attack, Recover, End
     }
     AttackPhase phase;
 
@@ -41,13 +41,8 @@ public class NadirAttackState : NadirBaseState
         stateMachine.action = "Attack";
 
         //武器設定
-        if (stateMachine.weapon.TryGetComponent<WeaponController>(out WeaponController Weapon))
-        {
-            Weapon.hit += WeaponHit;
-            Weapon.PowerUpdate(stateMachine.WeaponPower);
-        }
 
-        stateMachine.weapon.GetComponent<Collider>().enabled = false;
+        stateMachine.weapon.Deactivate();
 
         comboIndex = 0;
 
@@ -80,13 +75,22 @@ public class NadirAttackState : NadirBaseState
         {
             case InputBuffer.Combo :
                 if(phase == AttackPhase.Recover){
-                    comboIndex = (comboIndex + 1)%stateMachine.comboData.attackDatas.Count;
-                    StartAttack();
+                    if (comboIndex + 1 < stateMachine.comboData.combo.Count)  
+                    {
+                        stateMachine.weapon.Deactivate();
+                        comboIndex++;
+                        StartAttack();
+                    }
+                    else
+                    {
+                        buffer = InputBuffer.none; 
+                    }
                 }
             break;
             case InputBuffer.Step :
                 if(CanCancel())
-                {
+                {   
+                    buffer = InputBuffer.none;
                     stateMachine.SwitchState(new NadirStepState(stateMachine));
                 }
                 break;
@@ -97,10 +101,7 @@ public class NadirAttackState : NadirBaseState
     //更新
     public override void Tick(float deltaTime)
     {
-        float t = stateMachine.mAnimator.GetNormalizedTime("Attack");
-
-        HandleInput();
-        TryBufferedInput();
+        float t = stateMachine.mAnimator.GetNormalizedTime(currentAttack.motionTag);
 
         switch(phase)
         {
@@ -111,25 +112,29 @@ public class NadirAttackState : NadirBaseState
                 if(t>= currentAttack.activeFrame)
                 {
                     phase = AttackPhase.Attack;
-                    stateMachine.weapon.GetComponent<Collider>().enabled = true;
-                    PlayerSound.Instance.slash();
+                    string se = "N_Swing" + (UnityEngine.Random.Range(0, 3)+1).ToString();
+                    SoundPlayer.Instance.PlaySE(se, 1f, Random.Range(-0.2f, 0.2f));
+                    stateMachine.weapon.Activate();
                 }
                 break;
             case AttackPhase.Attack :
                 //回復フレームなら、コライダーを無効化にする
                 if(t>=currentAttack.recoverFrame)
                 {
-                    stateMachine.weapon.GetComponent<Collider>().enabled = false;
+                    stateMachine.weapon.Deactivate();
                     phase = AttackPhase.Recover;
                 }
             break;
             case AttackPhase.Recover :
                 //予約された先行入力がないと、モーション終了後Idleへ
-                if(t>=1.0){
+                if(t>=1.0f){
+                    phase = AttackPhase.End;
                     stateMachine.SwitchState(new NadirIdleState(stateMachine));
                 }
             break;
         }        
+        HandleInput();
+        TryBufferedInput();
     }
 
     public override void FixedTick(float deltaTime)
@@ -140,24 +145,11 @@ public class NadirAttackState : NadirBaseState
     {
         stateMachine.action = "Null";
 
-        stateMachine.mAnimator.ResetAttack();
-
-        //武器の衝突判定によって必殺ゲージが貯めたことを無効化にする
-        if (stateMachine.weapon.TryGetComponent<WeaponController>(out WeaponController Weapon))
-        {
-            Weapon.hit -= WeaponHit;
-        }
         //念の為コライダーオフ
-        stateMachine.weapon.GetComponent<Collider>().enabled = false;
-
+        stateMachine.weapon.Deactivate();
+        Debug.Log("Attack End");
     }
 
-    //武器が当たる時
-    private void WeaponHit()
-    {
-        stateMachine.ChargeSuperGauge();
-
-    }
     //現在攻撃キャンセルができるか
     private bool CanCancel()
     {
@@ -168,7 +160,9 @@ public class NadirAttackState : NadirBaseState
     {
         phase = AttackPhase.Ready;
         buffer = InputBuffer.none;
-        currentAttack = stateMachine.comboData.attackDatas[comboIndex];
-        stateMachine.mAnimator.PlayMotion(currentAttack.motionTag);
+        currentAttack = stateMachine.comboData.combo[comboIndex];
+        stateMachine.weapon.SetAttack(currentAttack.GetAttackInfo(stateMachine.gameObject));
+        stateMachine.mAnimator.PlayMotion(currentAttack.motionTag, 0);
+        stateMachine.mAnimator.PlayWeaponMotion(currentAttack.motionTag, 0);
     }
 }

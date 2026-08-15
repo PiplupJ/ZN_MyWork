@@ -25,10 +25,9 @@ public class GolemRockfallAttackState : GolemBaseState
         if(fired[fireCount]==false){
             if(GetNormalizedTime(stateMachine.Animator, "RockfallAttack")>=startTime){
                 stateMachine.rocketGenerator.GolemRocketShot(stateMachine.RocketFirePoints[fireCount], stateMachine.Player);
-                if (stateMachine.sem != null)
-                {
-                    stateMachine.sem.playEnemySE(EnemySEtype.GolemRocketShot);
-                }
+               
+                SoundPlayer.Instance.PlaySE("G_RocketShot", 0.5f);
+                
                 fired[fireCount] = true;
                 startTime += 0.1f;
                 if(fireCount < fired.Length - 1)

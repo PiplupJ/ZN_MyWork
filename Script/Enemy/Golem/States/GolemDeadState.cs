@@ -10,8 +10,8 @@ public class GolemDeadState : GolemBaseState
 
     public override void Enter()
     {
-        stateMachine.sem.playEnemySE(EnemySEtype.GolemDeath);
-       stateMachine.Animator.CrossFadeInFixedTime(DeadHash, CrossFadeDuration);
+        SoundPlayer.Instance.PlaySE("G_Dead");
+        stateMachine.Animator.CrossFadeInFixedTime(DeadHash, CrossFadeDuration);
     }
 
     public override void Tick(float deltaTime) 
