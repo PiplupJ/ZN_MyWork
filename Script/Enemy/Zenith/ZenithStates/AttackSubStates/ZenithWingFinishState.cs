@@ -1,21 +1,23 @@
 using UnityEngine;
 
-public class ZenithWingFinishState : ZenithAttackingState
+public class ZenithWingFinishState : ZenithBaseState
 {
     public ZenithWingFinishState(ZenithStateMachine stateMachine) : base(stateMachine) { }
 
     public override void Enter()
     {
-        stateMachine.Animator.CrossFadeInFixedTime(WingAttackHash2, TransitionDuration);
+        stateMachine.mAnimator.WingFinish();
 
-        stateMachine.sem.playEnemySE(EnemySEtype.ZenithWingFinish);
-        stateMachine.hitManager.HitBoxEnable(ZenithHitBoxes.WingAttack);
+        SoundPlayer.Instance.PlaySE("Z_WingFinish");
+        stateMachine.hitboxController.ActivateHitbox(ZenithHitboxType.LeftWing);
+        stateMachine.hitboxController.ActivateHitbox(ZenithHitboxType.RightWing); 
     }
     
     public override void Tick(float deltaTime)
     {
-        if(GetNormalizedTime(stateMachine.Animator, "Attack_Wing_Finish")>=1){
-		    stateMachine.hitManager.HitBoxDisable(ZenithHitBoxes.WingAttack);
+        if(stateMachine.mAnimator.GetNormalizedTime("Attack")>=1){
+		    stateMachine.hitboxController.DeactivateHitbox(ZenithHitboxType.LeftWing);
+            stateMachine.hitboxController.DeactivateHitbox(ZenithHitboxType.RightWing);
             stateMachine.SwitchState(new ZenithChasingState(stateMachine));
             return;
         }
@@ -23,6 +25,7 @@ public class ZenithWingFinishState : ZenithAttackingState
 
     public override void Exit()
     {
-
+        stateMachine.hitboxController.DeactivateHitbox(ZenithHitboxType.LeftWing);
+        stateMachine.hitboxController.DeactivateHitbox(ZenithHitboxType.RightWing);
     }
 }

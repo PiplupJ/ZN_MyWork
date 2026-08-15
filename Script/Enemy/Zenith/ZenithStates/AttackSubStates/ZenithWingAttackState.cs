@@ -1,50 +1,59 @@
 using UnityEngine;
 
-public class ZenithWingAttackState : ZenithAttackingState
+public class ZenithWingAttackState : ZenithBaseState
 {
     public ZenithWingAttackState(ZenithStateMachine stateMachine) : base(stateMachine) { }
     
-    private float transitionDelay;
-    private bool throwed;
-    private bool finished;
+    enum AttackPhase
+    {
+        Ready,
+        Attack,
+        Recover,
+        Finish
+    }
+    AttackPhase phase;
     
     public override void Enter()
     {
-        transitionDelay = 1.0f;
-        throwed = false;
-        stateMachine.Animator.CrossFadeInFixedTime(WingAttackHash1, TransitionDuration);
-        finished = false;
+        phase = AttackPhase.Ready;
+        stateMachine.mAnimator.Wing();
     }
 
     public override void Tick(float deltaTime)
     {   
-        float elapsedTime = GetNormalizedTime(stateMachine.Animator, "Attack_Wing_Start");
+        float elapsedTime = stateMachine.mAnimator.GetNormalizedTime("Attack");
 
-        if(!throwed&&elapsedTime>=0.7f)
+        switch(phase)
         {
-            stateMachine.hitManager.HitBoxEnable(ZenithHitBoxes.WingAttack);
-            throwed = true;
-        }
-
-        if(elapsedTime>=1)
-        {   
-            if(!finished)
-            {
-                stateMachine.sem.playEnemySE(EnemySEtype.ZenithWing);
-                stateMachine.hitManager.HitBoxDisable(ZenithHitBoxes.WingAttack);
-                finished = true;
-            }
-            transitionDelay-=deltaTime;
-        }
-
-        if(transitionDelay<=0){
-            stateMachine.SwitchState(new ZenithWingFinishState(stateMachine));
-            return;
+            case AttackPhase.Ready :
+                if(elapsedTime >= 0.7f){
+                    SoundPlayer.Instance.PlaySE("Z_Wing");
+                    stateMachine.hitboxController.ActivateHitbox(ZenithHitboxType.LeftWing);
+                    stateMachine.hitboxController.ActivateHitbox(ZenithHitboxType.RightWing); 
+                    phase = AttackPhase.Attack;
+                }
+                break;
+            case AttackPhase.Attack :
+                if(elapsedTime >= 0.9f){
+                    stateMachine.hitboxController.DeactivateHitbox(ZenithHitboxType.LeftWing);
+                    stateMachine.hitboxController.DeactivateHitbox(ZenithHitboxType.RightWing);
+                    phase = AttackPhase.Recover;
+                }
+                break;
+            case AttackPhase.Recover :
+                if(elapsedTime >= 1.0f){
+                    stateMachine.SwitchState(new ZenithWingFinishState(stateMachine));
+                    phase = AttackPhase.Finish;
+                }
+                break;
+            default :
+                break;
         }
     }
 
     public override void Exit()
     {
-        stateMachine.CoolManager.WingAttackCoolDownOn();
+        stateMachine.hitboxController.DeactivateHitbox(ZenithHitboxType.LeftWing);
+        stateMachine.hitboxController.DeactivateHitbox(ZenithHitboxType.RightWing);
     }
 }

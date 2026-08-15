@@ -1,6 +1,6 @@
 using UnityEngine;
 
-public class ZenithBeamAttackState : ZenithAttackingState
+public class ZenithBeamAttackState : ZenithBaseState
 {
     public ZenithBeamAttackState(ZenithStateMachine stateMachine) : base(stateMachine) { }
 
@@ -10,20 +10,18 @@ public class ZenithBeamAttackState : ZenithAttackingState
 
     public override void Enter()
     {
-        stateMachine.Animator.CrossFadeInFixedTime(BeamAttackHash1, TransitionDuration);
-        stateMachine.sem.playEnemySE(EnemySEtype.ZenithBeamReady);
+        SoundPlayer.Instance.PlaySE("Z_BeamCharge");
+        stateMachine.mAnimator.Beam();
         fire = false;
-        stateMachine.CoolManager.BeamAttackCoolDownOn();
-        
     }
 
     public override void Tick(float deltaTime)
     {   
-        timer = GetNormalizedTime(stateMachine.Animator, "Attack_Beam_Start");
+        timer = stateMachine.mAnimator.GetNormalizedTime("Attack");
         
         if(fire == false && timer>=1){
-            stateMachine.sem.playEnemySE(EnemySEtype.ZenithBeamShot);
-            stateMachine.hitManager.HitBoxEnable(ZenithHitBoxes.Beam);
+            SoundPlayer.Instance.PlaySE("Z_Beam");
+            stateMachine.hitboxController.ActivateHitbox(ZenithHitboxType.Laser);
             fire = true;
         }
 
@@ -34,7 +32,7 @@ public class ZenithBeamAttackState : ZenithAttackingState
 
         if(BeamAttackTime<=0)
         {
-            stateMachine.hitManager.HitBoxDisable(ZenithHitBoxes.Beam);
+            stateMachine.hitboxController.DeactivateHitbox(ZenithHitboxType.Laser);
             stateMachine.SwitchState(new ZenithBeamFinishState(stateMachine));
             return;
         }
@@ -42,6 +40,6 @@ public class ZenithBeamAttackState : ZenithAttackingState
 
     public override void Exit()
     {
-
+        stateMachine.hitboxController.DeactivateHitbox(ZenithHitboxType.Laser);
     }
 }

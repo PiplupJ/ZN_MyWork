@@ -6,15 +6,18 @@ public class ZenithDeadState : ZenithBaseState
     
     public override void Enter()
     {
-        Debug.Log("DeadState!");
+        stateMachine.mAnimator.Death();
     }
 
     public override void Tick(float deltaTime)
     {
-        stateMachine.DestroyZenith();
-        stateMachine.SwitchState(new ZenithIdleState(stateMachine));
-        return;
+        float elapsedTime = stateMachine.mAnimator.GetNormalizedTime("Death");
 
+        if (elapsedTime >= 1)
+        {
+            stateMachine.DestroyZenith();
+            return;
+        }
     }
 
     public override void Exit()

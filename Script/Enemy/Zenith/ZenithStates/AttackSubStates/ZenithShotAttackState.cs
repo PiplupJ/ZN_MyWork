@@ -1,56 +1,37 @@
 using UnityEngine;
 
-public class ZenithShotAttackState : ZenithAttackingState
+public class ZenithShotAttackState : ZenithBaseState
 {
     public ZenithShotAttackState(ZenithStateMachine stateMachine) : base(stateMachine) { }
 
-    private bool fired;
-
-    float timer;
-
-    float shotTime = 0.42f;
-
-    Transform _target;
+    private readonly float[] shotTimes = {0.46f, 0.48f, 0.5f, 0.52f};
+    
+    int shotIndex;
+    AttackInfo attackInfo;
 
     public override void Enter()
     {
-        stateMachine.Animator.CrossFadeInFixedTime(ShotAttackHash, TransitionDuration);
-        fired = false;
-        if (stateMachine.Player == null) { return; }
-        _target = stateMachine.Player.transform;
-
+        stateMachine.mAnimator.Shot();
+        shotIndex = 0;
+        attackInfo = stateMachine.shotAttackData.GetAttackInfo(stateMachine.gameObject);
     }
 
     public override void Tick(float deltaTime)
     {
-        timer = GetNormalizedTime(stateMachine.Animator, "Attack_Shot");
+        float elapsedTime = stateMachine.mAnimator.GetNormalizedTime("Attack");
 
-        if(timer<shotTime) {RotateToPlayer(deltaTime);}
-
-        if(!fired && timer>=shotTime)
-        {
-            if (_target == null) return;
-            stateMachine.sem.playEnemySE(EnemySEtype.ZenithShot);
-            stateMachine.zsg.ZenithShotAttack(stateMachine.temp, _target);
-
-            /*
-            for(int i = 0; i < stateMachine.FirePointsL.Length; i++)
-            {
-                stateMachine.zsg.ZenithShotAttack(stateMachine.FirePointsL[i], _target);
+        if(shotIndex < shotTimes.Length){
+            if(elapsedTime >= shotTimes[shotIndex]){
+                SoundPlayer.Instance.PlaySE("Z_Shot");
+                stateMachine.shooter.Fire(stateMachine.shotBullet, stateMachine.FirePoints[shotIndex].transform.position, attackInfo, stateMachine.transform.forward);
+                shotIndex++;
             }
-            for(int i = 0; i < stateMachine.FirePointsR.Length; i++)
-            {
-                stateMachine.zsg.ZenithShotAttack(stateMachine.FirePointsR[i], _target);
-            }
-            */
-            fired = true;
         }
-        if(timer >=1){
 
-                stateMachine.CoolManager.ShotAttackCoolDownOn();
-                stateMachine.SwitchState(new ZenithChasingState(stateMachine));
-                return;
-        }
+        if(elapsedTime >= 1){
+            stateMachine.SwitchState(new ZenithChasingState(stateMachine));
+            return;
+        }        
     }
 
     public override void Exit()
