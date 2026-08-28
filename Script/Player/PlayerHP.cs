@@ -1,7 +1,7 @@
 /*
  * 作者：張　源碩（ジャン　ウォンソク）
  * 
- * Last update: 2025/11/26
+ * Last update: 2026/08/26
  * 
  * 
  * PlayerHP 
@@ -33,6 +33,7 @@ public class PlayerHP : MonoBehaviour, IDamageable
     private float mutekiTimer = 0;
     private bool mutekiState = false;
 
+    private bool canRespawn = true;
     private void Awake()
     {
         //シュウが追加しました
@@ -138,6 +139,8 @@ public class PlayerHP : MonoBehaviour, IDamageable
     public void NewLife()
     {
         GameManager.instance.Respawn += PlayerRespawn;
+        mutekiTimer = 0;
+        canRespawn = false;
         UpdateHP?.Invoke();
     }
 

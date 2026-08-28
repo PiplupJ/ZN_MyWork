@@ -9,10 +9,16 @@ public class GameManager : MonoBehaviour
 
     [SerializeField] private GameObject playerPrefab;
     [SerializeField] private GameObject respawnPoint;
-
     public event Action Respawn;
 
     public InputAction playerRespawn;     //リスポーンボタン
+
+    //ゲームの状態
+    enum LifeState
+    {
+        Alive, Dying, Dead
+    }
+    private LifeState lifeState;
 
     private void Awake()
     {
@@ -36,7 +42,7 @@ public class GameManager : MonoBehaviour
 
     private void Update()
     {
-        if (PlayerHP.instance.health <= 0 && this.playerRespawn.WasPressedThisFrame()) {
+        if (lifeState == LifeState.Dead && this.playerRespawn.WasPressedThisFrame()) {
             Debug.Log("Respawn");
             Respawn?.Invoke();
             SceneManager.LoadScene(SceneManager.GetActiveScene().name);
@@ -46,12 +52,25 @@ public class GameManager : MonoBehaviour
 
     private void OnEnable()
     {
-        //UI_MainGame.instance.Respawn += RespawnPlayer;
+        UI_MainGame.instance.Respawn += OnDeathFinished ;
+        PlayerHP.instance.Death += DeathHandle;
+        
     }
 
     private void OnDisable()
     {
-        //UI_MainGame.instance.Respawn -= RespawnPlayer;
+        UI_MainGame.instance.Respawn -= OnDeathFinished;
+        PlayerHP.instance.Death -= DeathHandle;
+    }
+
+    private void DeathHandle()
+    {
+        lifeState = LifeState.Dying;
+    }
+
+    private void OnDeathFinished()
+    {
+        lifeState = LifeState.Dead;
     }
 
     //プレイヤーの復活
@@ -59,6 +78,7 @@ public class GameManager : MonoBehaviour
     {
         Instantiate(playerPrefab, respawnPoint.transform.position, Quaternion.identity);
         PlayerHP.instance.NewLife();
+        lifeState = LifeState.Alive;
     }
 
 

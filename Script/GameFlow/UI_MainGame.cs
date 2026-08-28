@@ -65,7 +65,7 @@ public class UI_MainGame : MonoBehaviour
     //リスポーンボタンクリック
     public void OnClickRespawn()
     {
-        Respawn?.Invoke();
+        //Respawn?.Invoke();
         respawnButton.SetActive(false);
         SceneManager.LoadScene(SceneManager.GetActiveScene().name);
 
@@ -75,6 +75,7 @@ public class UI_MainGame : MonoBehaviour
     public void EnableRespawn()
     {
         respawnButton.SetActive(true);
+        Respawn?.Invoke();
     }
 
     //必殺技ゲージの更新
