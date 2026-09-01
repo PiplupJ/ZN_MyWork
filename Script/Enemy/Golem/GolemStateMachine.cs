@@ -14,7 +14,9 @@ public class GolemStateMachine : EnemyStateMachine
 
     [Header("戦闘用")]
     [field: SerializeField] public GolemHP health{ get; private set; }
-    [field: SerializeField] public GolemRocketGenerator rocketGenerator{ get; private set; }
+    [field: SerializeField] public ProjectileShooter shooter{ get; private set; }
+    [field: SerializeField] public ProjectileAttackHitBox rocket{ get; private set; }
+    [field: SerializeField] public AttackData RocketAttackData { get; private set; }
     [field: SerializeField] public GameObject target{ get; private set; }
     [field: SerializeField] public GolemHitBoxController hitboxController { get; private set; }
     [field: SerializeField] public GolemCoolDownManager coolManager { get; private set; }

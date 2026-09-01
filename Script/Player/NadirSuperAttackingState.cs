@@ -98,10 +98,9 @@ public class NadirSuperAttackingState : NadirBaseState
             stateMachine.bulletRate = Mathf.Clamp(stateMachine.bulletRate, 0, stateMachine.bulletRateMax);
             if (fireCountdown <= 0)
             {
-                if(!TryGetDirectionToTarget(stateMachine.superTarget, out Vector3 dir)){
-                    return;
-                }
-                stateMachine.shooter.Fire(stateMachine.superBullet, superAttackInfo , dir);
+                if(stateMachine.superTarget == null) return;
+                
+                stateMachine.shooter.Fire(stateMachine.superBullet, superAttackInfo , stateMachine.superTarget.transform.position);
                 fireCountdown = 1 / stateMachine.bulletRate;
                 Debug.Log(stateMachine.bulletRate);
             }

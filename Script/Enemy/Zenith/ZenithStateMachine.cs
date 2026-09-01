@@ -43,6 +43,12 @@ public class ZenithStateMachine : EnemyStateMachine
     [SerializeField] public GameObject ZenithGore;
     public GameObject Player;
 
+    enum BossPhase
+    {
+        Phase1, Phase2
+    }
+    [field: SerializeField]  BossPhase phase;
+
     void Start()
     {
         Player = GameObject.FindGameObjectWithTag("Player");
@@ -75,12 +81,23 @@ public class ZenithStateMachine : EnemyStateMachine
     private void HandleDeath()
     {
         Destroy(this.SuperAttackTarget); //シュウが追加しました
-        SwitchState(new ZenithDeadState(this));
+        switch(phase)
+        {
+            case BossPhase.Phase1:
+                SwitchState(new ZenithPhaseTransitionState(this));
+                break;
+            case BossPhase.Phase2:
+                SwitchState(new ZenithDeadState(this));
+                break;
+            default :
+                break;
+        }
+
     }
 
     public void DestroyZenith()
     {
-        //sem.playEnemySE(EnemySEtype.EnemyDestroy);
+        SoundPlayer.Instance.PlaySE("G_Destroy");
         Instantiate(ZenithGore, this.transform.position, Quaternion.identity);
         BattleFinish();
         Destroy(this.gameObject);

@@ -9,16 +9,14 @@ public class ProjectileShooter : MonoBehaviour
 {
     public GameObject firePoint;
    
-    public void Fire(ProjectileAttackHitBox prefab, AttackInfo info, Vector3 dir)
+    public void Fire(ProjectileAttackHitBox prefab, AttackInfo info, Vector3 targetPos)
     {
-            ProjectileAttackHitBox projectile = Instantiate(prefab, firePoint.transform.position, Quaternion.LookRotation(dir));
-            projectile.Init(info, dir);
-
+        Fire(prefab, firePoint.transform.position, info, targetPos);
     }
 
-    public void Fire(ProjectileAttackHitBox prefab, Vector3 pos, AttackInfo info, Vector3 dir)
+    public void Fire(ProjectileAttackHitBox prefab, Vector3 pos, AttackInfo info, Vector3 taergetPos)
     {
-        ProjectileAttackHitBox projectile = Instantiate(prefab, pos, Quaternion.LookRotation(dir));
-        projectile.Init(info, dir);
+        ProjectileAttackHitBox projectile = Instantiate(prefab, pos, Quaternion.identity);
+        projectile.Init(info, taergetPos);
     }
 }

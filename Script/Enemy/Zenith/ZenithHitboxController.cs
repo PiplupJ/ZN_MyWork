@@ -14,23 +14,6 @@ public class ZenithHitboxController : MonoBehaviour
     [SerializeField] private EnemyAttackHitBox WingR2;
     [SerializeField] private EnemyEffectHitbox Laser;
 
-    private void OnEnable()
-    {
-        WingL1.OnAttackHit += PlayMeleeSFX;
-        WingL2.OnAttackHit += PlayMeleeSFX;
-        WingR1.OnAttackHit += PlayMeleeSFX;
-        WingR2.OnAttackHit += PlayMeleeSFX;
-        Laser.OnAttackHit += PlayLaserHitSFX;
-    }
-
-    private void OnDisable() 
-    {
-        WingL1.OnAttackHit -= PlayMeleeSFX;
-        WingL2.OnAttackHit -= PlayMeleeSFX;
-        WingR1.OnAttackHit -= PlayMeleeSFX;
-        WingR2.OnAttackHit -= PlayMeleeSFX;
-        Laser.OnAttackHit -= PlayLaserHitSFX;
-    }
 
     public void InitHitboxes(AttackInfo melee, AttackInfo laser)
     {
@@ -79,16 +62,5 @@ public class ZenithHitboxController : MonoBehaviour
             default :
                 break;
         }
-    }
-    
-    private void PlayMeleeSFX()
-    {
-        string key = "Z_AttackHit"+(UnityEngine.Random.Range(0, 2)+1).ToString();
-        SoundPlayer.Instance.PlaySE(key);       
-    }
-
-    private void PlayLaserHitSFX()
-    {
-        SoundPlayer.Instance.PlaySE("LaserHit");
     }
 }

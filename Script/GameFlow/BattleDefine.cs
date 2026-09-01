@@ -9,7 +9,9 @@ public enum AttackType
     Projectile,
     Counter,
     Super,
-    Laser
+    Laser,
+    Bomb,
+    Slash
 }
 
 public struct AttackInfo

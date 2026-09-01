@@ -14,6 +14,10 @@ public class ZenithShotAttackState : ZenithBaseState
         stateMachine.mAnimator.Shot();
         shotIndex = 0;
         attackInfo = stateMachine.shotAttackData.GetAttackInfo(stateMachine.gameObject);
+        if(TryGetDirToPlayer(out Vector3 dir))
+        {
+            stateMachine.transform.rotation = Quaternion.LookRotation(dir);
+        }
     }
 
     public override void Tick(float deltaTime)
@@ -22,8 +26,13 @@ public class ZenithShotAttackState : ZenithBaseState
 
         if(shotIndex < shotTimes.Length){
             if(elapsedTime >= shotTimes[shotIndex]){
+                if(!TryGetPlayerPos(out Vector3 playerPos))
+                {
+                    stateMachine.SwitchState(new ZenithIdleState(stateMachine));
+                    return;
+                }
                 SoundPlayer.Instance.PlaySE("Z_Shot");
-                stateMachine.shooter.Fire(stateMachine.shotBullet, stateMachine.FirePoints[shotIndex].transform.position, attackInfo, stateMachine.transform.forward);
+                stateMachine.shooter.Fire(stateMachine.shotBullet, stateMachine.FirePoints[shotIndex].transform.position, attackInfo, playerPos);
                 shotIndex++;
             }
         }

@@ -14,16 +14,6 @@ public class GolemHitBoxController : MonoBehaviour
         LaserHitBox.SetAttack(LaserAttackData.GetAttackInfo(this.gameObject));
     }
 
-    private void OnEnable()
-    {
-        LaserHitBox.OnAttackHit += PlayLaserHitSFX;
-    }
-
-    private void OnDisable()
-    {
-        LaserHitBox.OnAttackHit -= PlayLaserHitSFX;
-    }
-
     public void HitBoxEnable(GolemAttackType hitbox)
     {
         switch(hitbox)
@@ -59,10 +49,6 @@ public class GolemHitBoxController : MonoBehaviour
         LaserHitBox.Deactivate();
     }
 
-    private void PlayLaserHitSFX()
-    {
-        SoundPlayer.Instance.PlaySE("LaserHit");
-    }
 }
 
 public enum GolemAttackType

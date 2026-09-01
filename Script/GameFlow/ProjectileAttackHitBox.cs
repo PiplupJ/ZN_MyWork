@@ -9,49 +9,77 @@ public class ProjectileAttackHitBox : BaseAttackHitBox
 {
     [SerializeField] private ProjectileMoveData moveData;
     [SerializeField] private EffectId effectId;
-    [SerializeField] private float lifetime = 10f;
+    [SerializeField] private bool explodeAtTarget;
 
-    float moveSpeed;
-    Vector3 moveDirection;
+    float moveSpeed, elapsedTime, lifetime;
+    Vector3 currentVelocity;
+    Vector3 targetPos;
 
-    public void Init(AttackInfo attack, Vector3 moveDirection)
+    bool isInitialized = false;
+
+    public void Init(AttackInfo attack, Vector3 targetPos)
     {
         SetAttack(attack);
-        this.moveDirection = moveDirection;
         Activate();
-        Destroy(gameObject, moveData.lifetime);
 
+        this.targetPos = targetPos;
+        this.lifetime = moveData.lifetime;
         moveSpeed = moveData.baseSpeed;
+        elapsedTime = 0;
+   
+        this.currentVelocity = moveData.GetStartVelocity(transform.position, targetPos);
+        RotateTowardVelocity();
+
+        isInitialized = true;
     }
 
     private void OnTriggerEnter(Collider other) {
-        if(!TryAttack(other, out var target)){
+        
+        //衝突したら爆発
+        if(TryAttack(other, out var target)){
+            target.TakeDamage(currentAttack);
+            Explode(other.ClosestPoint(transform.position));
             return;
         }
-        
-        EffectGenerator.Instance.CreateEffect(effectId, other.ClosestPoint(transform.position));
-        target.TakeDamage(currentAttack);
-        Destroy(gameObject);
+        Explode(transform.position);
     }
 
     private void Update()
     {
-        float deltaTime = Time.deltaTime;
-
-        lifetime -= deltaTime;
-
-        if(lifetime<=0){
+        if(!isInitialized){ return; }
+        float dt = Time.deltaTime;
+        elapsedTime += dt;
+        lifetime -= dt;
+        if(lifetime <= 0)
+        {
             Destroy(gameObject);
-            return;            
+            return;
         }
 
-        this.transform.position += moveDirection*moveSpeed*deltaTime;
+        moveSpeed = Mathf.Min(moveSpeed + moveData.acceleration * dt, moveData.maxSpeed);
 
-        if(moveSpeed < moveData.maxSpeed){
-            moveSpeed += moveData.acceleration*deltaTime;
+        currentVelocity = moveData.GetNextVelocity(currentVelocity, transform.position, targetPos, moveSpeed, elapsedTime, dt);
+        transform.position += currentVelocity;
+
+        RotateTowardVelocity();
+
+        if(explodeAtTarget && (transform.position - targetPos).sqrMagnitude < 0.1){
+            Explode(targetPos);
+            SoundPlayer.Instance.PlaySE(SoundType.HitExplosion);
+            return;
         }
-
     }
 
+    private void Explode(Vector3 pos)
+    {
+        EffectGenerator.Instance.CreateEffect(effectId, pos);
+        Destroy(gameObject);
+    }
+
+    private void RotateTowardVelocity()
+    {
+        if (currentVelocity.sqrMagnitude > 0.0001f)
+            transform.rotation = Quaternion.LookRotation(currentVelocity);       
+    }
 
 }

@@ -4,6 +4,6 @@ using UnityEngine;
 public class SoundData : ScriptableObject
 {
     public SoundType type;
-    public AudioClip clip;
+    public AudioClip[] clip;
     public float pitch = 0;
 }

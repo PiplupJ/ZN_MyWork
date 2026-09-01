@@ -20,6 +20,16 @@ public abstract class GolemBaseState : EnemyState
             stateMachine.transform.position);
 
     }
+
+    protected bool TryGetPlayerPos(out Vector3 playerPos)
+    {
+        playerPos = Vector3.zero;
+        if(stateMachine.Player == null) { return false;}
+
+        playerPos = stateMachine.Player.transform.position;
+
+        return true;
+    }
     protected bool TryGetDirToPlayer(out Vector3 dir)
     {
         dir = Vector3.zero;

@@ -21,7 +21,13 @@ using System.Collections.Generic;
 public enum SoundType
 {
     TitleBGM = 1,
-    TitleSE = 2
+    TitleSE = 2,
+
+    HitExplosion = 11,
+    HitHeavy = 12,
+    HitSlash = 13,
+    HitLaser = 14,
+    HitProjectile = 15
 }
 
 public class SoundPlayer : MonoBehaviour
@@ -108,7 +114,7 @@ public class SoundPlayer : MonoBehaviour
             return;
         }
 
-        bgmSource.clip = s.clip;
+        bgmSource.clip = s.clip[0];
         bgmSource.Play();
 
     }
@@ -142,7 +148,7 @@ public class SoundPlayer : MonoBehaviour
         }
 
         source.pitch = 1f + Random.Range(-s.pitch, s.pitch);
-        source.PlayOneShot(s.clip);
+        source.PlayOneShot(s.clip[Random.Range(0,s.clip.Length)]);
     }
 
     //BGM再生終了
