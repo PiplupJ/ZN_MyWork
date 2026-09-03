@@ -30,6 +30,8 @@ public class ZenithAnimation : MonoBehaviour
     private static readonly int ImpactMotionHash = Animator.StringToHash("Impact");
 
     private static readonly int DeathMotionHash = Animator.StringToHash("Death");
+
+    private static readonly int PhaseTransitionHash = Animator.StringToHash("PhaseTransition");
     private const float IdleDuration = 0.1f;
 
     [SerializeField] private Animator charaAnimator;
@@ -117,6 +119,11 @@ public class ZenithAnimation : MonoBehaviour
     public void Death()
     {
         PlayMotion(DeathMotionHash, IdleDuration);
+    }
+
+    public void PhaseTransition()
+    {
+        PlayMotion(PhaseTransitionHash, IdleDuration);
     }
 
     public float GetNormalizedTime(string tagName)
