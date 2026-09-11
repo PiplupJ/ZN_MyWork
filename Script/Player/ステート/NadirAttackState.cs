@@ -3,7 +3,8 @@
  * 
  * First update: 2025/11/29
  * Last update: 2026/06/03 by 張源碩
- * 
+ * -攻撃データをAttackData(Scriptable Object)で外部化
+ * -先行入力バッファとコンボ段数管理を追加
  * 
  * Nadir Attack State
  * 

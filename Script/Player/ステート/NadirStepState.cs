@@ -37,16 +37,18 @@ public class NadirStepState : NadirBaseState
 
 
         //アニメーション
+        
+        //Vector3 animationDirection = stateMachine.transform.InverseTransformDirection(stepDir).normalized;
 
-        Vector3 animationDirection = stateMachine.transform.InverseTransformDirection(stepDir).normalized;
+        //float forward = animationDirection.z;
+        //float right = animationDirection.x;
 
-        float forward = animationDirection.z;
-        float right = animationDirection.x;
-
-        stateMachine.mAnimator.Step(forward, right);
+        //
+        // stateMachine.mAnimator.Step(forward, right);
+        stateMachine.mAnimator.Step();
         SoundPlayer.Instance.PlaySE("N_Step01", 1f, Random.Range(-0.2f, 0.2f));
 
-        Debug.Log(forward.ToString() + ", " + right.ToString());
+        //Debug.Log(forward.ToString() + ", " + right.ToString());
 
         stateMachine.moveDirection = Vector2.zero;
 

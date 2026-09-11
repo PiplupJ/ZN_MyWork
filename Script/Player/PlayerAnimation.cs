@@ -80,11 +80,18 @@ public class PlayerAnimation : MonoBehaviour
     }
 
     //回避
+    //後で引数なしにすること
+
+    public void Step()
+    {
+        PlayMotion(StepHash, StepFadeDuration);
+        PlayWeaponMotion(StepHash, StepFadeDuration);
+    }
     public void Step(float _forward, float _right)
     {
         PlayMotion(StepHash, StepFadeDuration);
-        this.charaAnimator.SetFloat(ForwardDirectionHash, _forward);
-        this.charaAnimator.SetFloat(RightDirectionHash, _right);
+        //this.charaAnimator.SetFloat(ForwardDirectionHash, _forward);
+        //this.charaAnimator.SetFloat(RightDirectionHash, _right);
     }
 
     //必殺技
@@ -117,6 +124,7 @@ public class PlayerAnimation : MonoBehaviour
     public void Dead()
     {
         PlayMotion(DeadHash, DeadFadeDuration);
+        PlayWeaponMotion(DeadHash, DeadFadeDuration);
     }
 
     //パリー

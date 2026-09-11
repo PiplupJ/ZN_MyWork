@@ -29,7 +29,7 @@ public class ZenithDoubleMeleeAttackState : ZenithBaseState
         {
             case AttackPhase.WindUp :
                 if(elapsedTime>=0.2f){
-                    SoundPlayer.Instance.PlaySE("Z_Melee", Random.Range(-0.2f, 0.2f));
+                    SoundPlayer.Instance.PlaySE("Z_Melee", 1.0f, Random.Range(-0.2f, 0.2f));
                     stateMachine.hitboxController.ActivateHitbox(ZenithHitboxType.LeftWing);    
                     phase = AttackPhase.Active;              
                 }  
@@ -43,7 +43,7 @@ public class ZenithDoubleMeleeAttackState : ZenithBaseState
                 break;
             case AttackPhase.Wait :
                 if(elapsedTime>=0.4f){
-                    SoundPlayer.Instance.PlaySE("Z_Melee", Random.Range(-0.2f, 0.2f));
+                    SoundPlayer.Instance.PlaySE("Z_Melee", 1.0f, Random.Range(-0.2f, 0.2f));
                     stateMachine.hitboxController.ActivateHitbox(ZenithHitboxType.RightWing);                    
                     phase = AttackPhase.Chain;
                 }

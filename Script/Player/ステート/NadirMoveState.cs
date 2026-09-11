@@ -3,7 +3,8 @@
  * 
  * First update: 2025/11/17
  * Last update : 2026/07/11 by 張源碩(ジャンウォンソク)
- * 
+ * -移動の加減速追加
+ * -歩き・走りの分離
  * Nadir Move State
  * 
  */

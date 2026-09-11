@@ -98,8 +98,8 @@ public class ZenithStateMachine : EnemyStateMachine
     public void DestroyZenith()
     {
         SoundPlayer.Instance.PlaySE("G_Destroy");
-        Instantiate(ZenithGore, this.transform.position, Quaternion.identity);
+        //Instantiate(ZenithGore, this.transform.position, Quaternion.identity);
         BattleFinish();
-        Destroy(this.gameObject);
+        //Destroy(this.gameObject);
     }
 }
