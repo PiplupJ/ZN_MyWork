@@ -34,6 +34,7 @@ public class UI_MainGame : MonoBehaviour
 
     int prevHP; //前のHP数値を保存し、今回の体力更新がダメージか増加かを判断
 
+
     private void Awake()
     {
         if (instance != null)
@@ -57,6 +58,11 @@ public class UI_MainGame : MonoBehaviour
         UpdateHP();
     }
 
+    private void Update()
+    {
+        
+    }
+
     private void OnDisable()
     {
         PlayerHP.instance.UpdateHP -= UpdateHP;
@@ -65,7 +71,7 @@ public class UI_MainGame : MonoBehaviour
     //リスポーンボタンクリック
     public void OnClickRespawn()
     {
-        Respawn?.Invoke();
+        //Respawn?.Invoke();
         respawnButton.SetActive(false);
         SceneManager.LoadScene(SceneManager.GetActiveScene().name);
 
@@ -75,6 +81,7 @@ public class UI_MainGame : MonoBehaviour
     public void EnableRespawn()
     {
         respawnButton.SetActive(true);
+        Respawn?.Invoke();
     }
 
     //必殺技ゲージの更新
