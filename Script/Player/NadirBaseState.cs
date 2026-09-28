@@ -159,4 +159,13 @@ public abstract class NadirBaseState : PlayerState
         dir = diff.normalized;
         return true;
     }
+
+    //攻撃する際に敵へ回転
+    public void RotateToBoss()
+    {
+        var boss = BattleSceneManager.CurrentBoss;
+        if (boss == null) return;
+
+        PlayerRotateTowards(boss.transform);
+    }
 }

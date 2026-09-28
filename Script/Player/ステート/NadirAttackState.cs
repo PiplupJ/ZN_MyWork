@@ -54,6 +54,7 @@ public class NadirAttackState : NadirBaseState
     //先行入力を受ける
     void HandleInput()
     {
+        //回避＞コンボ順で優先する
         if (stateMachine.playerAttack.WasPressedThisFrame())
         {
             buffer = InputBuffer.Combo;
@@ -75,6 +76,7 @@ public class NadirAttackState : NadirBaseState
         switch(buffer)
         {
             case InputBuffer.Combo :
+                //モーション終了を待たずに、次のコンボ実行
                 if(phase == AttackPhase.Recover){
                     if (comboIndex + 1 < stateMachine.comboData.combo.Count)  
                     {
@@ -82,13 +84,16 @@ public class NadirAttackState : NadirBaseState
                         comboIndex++;
                         StartAttack();
                     }
+                    //最後のコンボだったら、処理しない
                     else
                     {
                         buffer = InputBuffer.none; 
                     }
                 }
             break;
+                //回避入力
             case InputBuffer.Step :
+                //キャンセルできるならキャンセルして回避を実行
                 if(CanCancel())
                 {   
                     buffer = InputBuffer.none;
@@ -104,11 +109,11 @@ public class NadirAttackState : NadirBaseState
     {
         float t = stateMachine.mAnimator.GetNormalizedTime(currentAttack.motionTag);
 
-        switch(phase)
+        switch (phase)
         {
-            default :
+            default:
                 break;
-            case AttackPhase.Ready :
+            case AttackPhase.Ready:
                 //攻撃フレームなら、コライダーを有効化にする
                 if(t>= currentAttack.activeFrame)
                 {
@@ -140,6 +145,23 @@ public class NadirAttackState : NadirBaseState
 
     public override void FixedTick(float deltaTime)
     {
+        switch (phase)
+        {
+            case AttackPhase.Ready:
+                //向き入力があればその向きへ
+                if (stateMachine.moveDirection != Vector2.zero)
+                {
+                    PlayerRotate();
+                }
+                //ないならボスへ自動回転
+                else
+                {
+                    RotateToBoss();
+                }
+                break;
+            default:
+                break;
+        }
     }
 
     public override void Exit()
@@ -159,10 +181,11 @@ public class NadirAttackState : NadirBaseState
     //攻撃開始（現在の攻撃にコンボデータを適用する)
     protected void StartAttack()
     {
-        phase = AttackPhase.Ready;
-        buffer = InputBuffer.none;
-        currentAttack = stateMachine.comboData.combo[comboIndex];
-        stateMachine.weapon.SetAttack(currentAttack.GetAttackInfo(stateMachine.gameObject));
+        phase = AttackPhase.Ready; //攻撃段階は準備
+        buffer = InputBuffer.none; //先行入力はなし
+        currentAttack = stateMachine.comboData.combo[comboIndex]; //次の攻撃情報の読み込み
+        //攻撃情報を基にしたダメージ、モーション設定
+        stateMachine.weapon.SetAttack(currentAttack.GetAttackInfo(stateMachine.gameObject)); 
         stateMachine.mAnimator.PlayMotion(currentAttack.motionTag, 0);
         stateMachine.mAnimator.PlayWeaponMotion(currentAttack.motionTag, 0);
     }

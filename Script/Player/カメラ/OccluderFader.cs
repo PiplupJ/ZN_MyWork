@@ -52,8 +52,12 @@ public class OccluderFader
         float maxDist = (targetPos - cameraPos).magnitude - targetPadding;
 
         if(maxDist <=0) return;
-
-        int hitCount = Physics.SphereCastNonAlloc(cameraPos, hitRadius, dir, hitResults, maxDist);
+        
+        //床の裏面を認識するため
+        bool prevBackfaces = Physics.queriesHitBackfaces;   //現在のBackfaces設定を読む
+        Physics.queriesHitBackfaces = true; //一時的に活性化
+        int hitCount = Physics.SphereCastNonAlloc(cameraPos, hitRadius, dir, hitResults, maxDist); //カメラと対象間のオブジェクト数
+        Physics.queriesHitBackfaces = prevBackfaces;    //Backfaces設定を元に戻す
 
         //カメラとプレイヤー間の障害物を確認
         for(int i = 0; i < hitCount; i++)
