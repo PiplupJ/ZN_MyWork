@@ -20,17 +20,19 @@ public class ZenithBackStepState : ZenithBaseState
 
     public override void Tick(float deltaTime)
     {
-        float elapsedTime = stateMachine.mAnimator.GetNormalizedTime("Attack");
-        
-        RotateToPlayer(deltaTime);
-        
-        MoveWithFixedSpeed(deltaTime, stateMachine.backStepSpeed, moveDir);
-        
+        float elapsedTime = stateMachine.mAnimator.GetNormalizedTime("Attack");    
 
         if(elapsedTime>=1){
             stateMachine.SwitchState(new ZenithChasingState(stateMachine));
             return;
         }
+    }
+
+    public override void FixedTick(float deltaTime)
+    {
+        RotateToPlayer(deltaTime);
+        
+        MoveWithFixedSpeed(deltaTime, stateMachine.backStepSpeed, moveDir);
     }
 
     public override void Exit()

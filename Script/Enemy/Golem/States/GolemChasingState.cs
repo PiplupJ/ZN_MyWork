@@ -17,44 +17,25 @@ public class GolemChasingState : GolemBaseState
     public override void Enter()
     {
         stateMachine.Animator.CrossFadeInFixedTime(BasicMotionHash, CrossFadeDuration);
-        Debug.Log("Enter GolemChasingState");
-        stateMachine.Animator.applyRootMotion = true;
+        //Debug.Log("Enter GolemChasingState");
+        //stateMachine.Animator.applyRootMotion = true;
     }
 
     public override void Tick(float deltaTime)
     {   
+        if(TryStartAttack()) return;
 
+        UpdateMoveAnimation(deltaTime);
+    }
 
-        if(OnSight())
+    public override void FixedTick(float deltaTime)
+    {
+        float speed = InMeleeAttackRange() ? 0f : stateMachine.moveSpeed;
+
+        if(TryGetDirToPlayer(out Vector3 dir))
         {
-            if(!InLaserAttackRange())
-            {
-                if(stateMachine.coolManager.CanRockfallAttack()){
-                    stateMachine.SwitchState(new GolemRockfallAttackState(stateMachine));
-                    return;
-                }
-                else{
-                    GolemChase(deltaTime);
-                }
-            }
-            else{
-                if(stateMachine.coolManager.CanLaserAttack()){
-                    stateMachine.SwitchState(new GolemPreLaserAttackState(stateMachine));
-                    return;
-                }
-                else if(stateMachine.coolManager.CanMeleeAttack()){
-                    stateMachine.SwitchState(new GolemMeleeAttackState(stateMachine));
-                    return;
-                }
-                else{
-                    GolemChase(deltaTime);
-                }
-            }   
+            MoveAndRotateToPlayer(deltaTime, speed);
         }
-        else{
-            GolemChase(deltaTime);
-        }
-
     }
 
     public override void Exit()
@@ -62,23 +43,43 @@ public class GolemChasingState : GolemBaseState
 
     }
 
-    private void GolemChase(float deltaTime)
+    private void UpdateMoveAnimation(float deltaTime)
     {
-        if(stateMachine.Player == null) { return; }
+        if(!TryGetDirToPlayer(out Vector3 dir))
+        {
+            return;
+        }
 
-        Vector3 goal = stateMachine.Player.transform.position;
-        Vector3 moveDir = (goal - stateMachine.GolemController.transform.position).normalized;
+        Vector3 moveDir = dir.normalized;
                 
         stateMachine.Animator.SetFloat(SpeedXHash, moveDir.x, AnimatorDampTime, deltaTime);
-        stateMachine.Animator.SetFloat(SpeedYHash, moveDir.z, AnimatorDampTime, deltaTime);
+        stateMachine.Animator.SetFloat(SpeedYHash, moveDir.z, AnimatorDampTime, deltaTime);        
+    }
 
-        if(InMeleeAttackRange()){
-            MoveAndRotateToPlayer(deltaTime, 0);
+    bool TryStartAttack()
+    {
+        if(!OnSight()){ return false;}
+
+            if(!InLaserAttackRange())
+            {
+                if(stateMachine.coolManager.CanRockfallAttack()){
+                    stateMachine.SwitchState(new GolemRockfallAttackState(stateMachine));
+                    return true;
+                }
+                return false;
+            }
+
+        if (stateMachine.coolManager.CanLaserAttack())
+        {
+            stateMachine.SwitchState(new GolemPreLaserAttackState(stateMachine));
+            return true;
         }
-        else{
-            MoveAndRotateToPlayer(deltaTime, stateMachine.moveSpeed);
+        if (stateMachine.coolManager.CanMeleeAttack())
+        {
+            stateMachine.SwitchState(new GolemMeleeAttackState(stateMachine));
+            return true;
         }
-        
+        return false;
     }
 
     bool OnSight()

@@ -1,3 +1,4 @@
+using System.Runtime.CompilerServices;
 using UnityEngine;
 
 public class ZenithShotAttackState : ZenithBaseState
@@ -5,9 +6,13 @@ public class ZenithShotAttackState : ZenithBaseState
     public ZenithShotAttackState(ZenithStateMachine stateMachine) : base(stateMachine) { }
 
     private readonly float[] shotTimes = {0.46f, 0.48f, 0.5f, 0.52f};
-    
+
+    private readonly float[] shotAngles = { -8.0f, -4.0f, 4.0f, 8.0f }; //放射形発射時使う
+
     int shotIndex;
     AttackInfo attackInfo;
+
+    private const float AIM_DISTANCE = 50.0f;
 
     public override void Enter()
     {
@@ -26,13 +31,7 @@ public class ZenithShotAttackState : ZenithBaseState
 
         if(shotIndex < shotTimes.Length){
             if(elapsedTime >= shotTimes[shotIndex]){
-                if(!TryGetPlayerPos(out Vector3 playerPos))
-                {
-                    stateMachine.SwitchState(new ZenithIdleState(stateMachine));
-                    return;
-                }
-                SoundPlayer.Instance.PlaySE("Z_Shot");
-                stateMachine.shooter.Fire(stateMachine.shotBullet, stateMachine.FirePoints[shotIndex].transform.position, attackInfo, playerPos);
+                FireShot(stateMachine.FirePoints[shotIndex].transform.position);
                 shotIndex++;
             }
         }
@@ -41,6 +40,28 @@ public class ZenithShotAttackState : ZenithBaseState
             stateMachine.SwitchState(new ZenithChasingState(stateMachine));
             return;
         }        
+    }
+
+    private void FireShot(Vector3 firepoint)
+    {
+        Vector3 forward = stateMachine.transform.forward;
+        Vector3 dir = forward;
+        switch (stateMachine.phase)
+        {
+            case ZenithStateMachine.ZenithPhase.Phase1:
+                
+                break;
+            case ZenithStateMachine.ZenithPhase.Phase2:
+                Vector3 axis = stateMachine.transform.up;
+                dir = Quaternion.AngleAxis(shotAngles[shotIndex], axis) * forward;
+                break;
+            default:
+                break;
+        }
+
+        Vector3 targetPos = firepoint + dir * AIM_DISTANCE;
+        SoundPlayer.Instance.PlaySE("Z_Shot");
+        stateMachine.shooter.Fire(stateMachine.shotBullet, firepoint, attackInfo, targetPos);
     }
 
     public override void Exit()

@@ -151,6 +151,7 @@ public class NadirStateMachine : PlayerStateMachine
     //モーションブラー
     //ステップ時のみ
     private GameObject URP;
+    public DashFX dashFX;
 
     //初期化
     private void Awake()
@@ -190,6 +191,7 @@ public class NadirStateMachine : PlayerStateMachine
 
         PlayerSuperGauge.instance.ResetSuperGauge();
 
+        PlayerHP.instance.OnImpact += ImpactHandle;
         PlayerHP.instance.Death += DeathHandle;
 
         PlayerHP.instance.RegisterParry(parry);
@@ -207,6 +209,7 @@ public class NadirStateMachine : PlayerStateMachine
     //デリゲート解除
     private void OnDisable()
     {
+        PlayerHP.instance.OnImpact -= ImpactHandle;
         PlayerHP.instance.Death -= DeathHandle;
         PlayerHP.instance.ParrySucceeded -= ParryHandle;
         weapon.hit -= ChargeSuperGauge;
@@ -368,6 +371,12 @@ public class NadirStateMachine : PlayerStateMachine
     private void DeathHandle()
     {
         SwitchState(new NadirDeadState(this));
+    }
+
+    //ノックバック
+    private void ImpactHandle(KnockbackEntry entry)
+    {
+        SwitchState(new NadirImpactState(this, entry));
     }
 
     public void DestroyPlayer()

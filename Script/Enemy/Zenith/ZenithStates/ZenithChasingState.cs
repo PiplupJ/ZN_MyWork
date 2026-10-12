@@ -21,8 +21,6 @@ public class ZenithChasingState : ZenithBaseState
     public override void Tick(float deltaTime)
     {   
 
-        RotateToPlayer(deltaTime);
-
         if(OnSight()&&stateMachine.brain.CanDecide()){
             ZenithActionType type = stateMachine.brain.DecideAction(DistToPlayer(), stateMachine.health.GetHealthRatio());
 
@@ -33,13 +31,17 @@ public class ZenithChasingState : ZenithBaseState
 
             stateMachine.brain.ScheduleNextDecision();
         }
-
-        MaintainDistance(deltaTime);
         
         if(!InChaseRange()){
             stateMachine.SwitchState(new ZenithIdleState(stateMachine));
             return;
         }
+    }
+
+    public override void FixedTick(float deltaTime)
+    {
+        RotateToPlayer(deltaTime);
+        MaintainDistance(deltaTime);
     }
 
     //行動切り替え
@@ -54,10 +56,10 @@ public class ZenithChasingState : ZenithBaseState
                 stateMachine.SwitchState(new ZenithBackStepState(stateMachine));
                 return true;
             case ZenithActionType.Melee :
-                stateMachine.SwitchState(new ZenithMeleeAttackState(stateMachine));
+                stateMachine.SwitchState(new ZenithMeleeReadyState(stateMachine, ZenithActionType.Melee));
                 return true;
             case ZenithActionType.DoubleMelee :
-                stateMachine.SwitchState(new ZenithDoubleMeleeAttackState(stateMachine));
+                stateMachine.SwitchState(new ZenithMeleeReadyState(stateMachine, ZenithActionType.DoubleMelee));
                 return true;
             case ZenithActionType.Laser :
                 stateMachine.SwitchState(new ZenithBeamAttackState(stateMachine));

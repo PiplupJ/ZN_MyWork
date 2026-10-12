@@ -10,24 +10,35 @@ public class ZenithHP : MonoBehaviour, IDamageable
     mainUI mui;
     
     public event Action OnTakingDamage;
-    public event Action OnImpact; //変身
+    public event Action<KnockbackEntry> OnImpact; //変身
     public event Action Death;
 
     [SerializeField] private int hitSoundCount = 3;
+
+    [SerializeField] private KnockbackTable knockbackTable;
+
+    //ノックバック関係
+    private bool hasSuperArmor;
 
     private void Start()
     {
         health = maxHealth;
         GameObject main = GameObject.Find("mainGameUI");
         mui = main.GetComponent<mainUI>();
+
+        hasSuperArmor = false;
     }
 
     public void TakeDamage(AttackInfo attack)
     {
-        if(attack.type == AttackType.Counter){
-            OnImpact?.Invoke();
-        }
         DealDamage(attack.damage);
+
+        if (health > 0)
+        {
+            if(CheckSuperArmor(attack.type)) return; 
+            if(knockbackTable.TryGetEntry(attack.type, out var entry))
+            OnImpact?.Invoke(entry);
+        }
     }
 
     private void DealDamage(int damage)
@@ -56,5 +67,23 @@ public class ZenithHP : MonoBehaviour, IDamageable
     public float GetHealthRatio()
     {
         return (float)health/(float)maxHealth;
+    }
+
+    public void StartSuperArmor()
+    {
+        hasSuperArmor = true;
+    }
+
+    public void EndSuperArmor()
+    {
+        hasSuperArmor = false;
+    }
+
+    //スーパーアーマーを無視する攻撃以外に対してスーパーアーマーチエック
+    public bool CheckSuperArmor(AttackType type)
+    {
+        return  hasSuperArmor
+                &&type!=AttackType.Counter
+                &&type!=AttackType.Super;
     }
 }

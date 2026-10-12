@@ -11,6 +11,7 @@ public class ZenithWingFinishState : ZenithBaseState
         SoundPlayer.Instance.PlaySE("Z_WingFinish");
         stateMachine.hitboxController.ActivateHitbox(ZenithHitboxType.LeftWing);
         stateMachine.hitboxController.ActivateHitbox(ZenithHitboxType.RightWing); 
+        stateMachine.health.StartSuperArmor();
     }
     
     public override void Tick(float deltaTime)
@@ -27,5 +28,6 @@ public class ZenithWingFinishState : ZenithBaseState
     {
         stateMachine.hitboxController.DeactivateHitbox(ZenithHitboxType.LeftWing);
         stateMachine.hitboxController.DeactivateHitbox(ZenithHitboxType.RightWing);
+        stateMachine.health.EndSuperArmor();
     }
 }

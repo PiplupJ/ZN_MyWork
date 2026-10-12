@@ -15,11 +15,13 @@ public enum EffectId
     //Golem関連 2x
     GolemMeleeHit = 21,
     GolemLaserHit = 22,
+    GolemRocketHit = 23,
 
     //Zenith関連 3x
     ZenithMeleeHit = 31,
     ZenithLaserHit = 32,
-    ZenithShotHit = 33
+    ZenithShotHit = 33,
+    ZenithSupernovaHit = 34,
 }
 
 public class EffectGenerator : MonoBehaviour

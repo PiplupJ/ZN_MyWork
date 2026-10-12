@@ -17,37 +17,40 @@ public class ZenithStateMachine : EnemyStateMachine
 
     [field: SerializeField] public float ChasingRange { get; private set; }
     [field: SerializeField] public float targetRange { get; private set; }
-    
+
     [field: SerializeField] public float sightAngle { get; private set; }
 
     [Header("戦闘用")]
-    [field: SerializeField] public ZenithHP health{ get; private set; }
-    [field: SerializeField] public GameObject target{ get; private set; }
+    [field: SerializeField] public ZenithHP health { get; private set; }
+    [field: SerializeField] public GameObject target { get; private set; }
     [field: SerializeField] public ZenithHitboxController hitboxController { get; private set; }
-    [field: SerializeField] public ZenithBrain brain{ get; private set; }
+    [field: SerializeField] public ZenithBrain brain { get; private set; }
 
     [SerializeField] private AttackData meleeAttackData;
-    [SerializeField] private AttackData laserAttackData;  
+    [SerializeField] private AttackData laserAttackData;
     [SerializeField] public AttackData shotAttackData;
-
+    [field: SerializeField] public AttackData supernovaAttackData { get; private set; }
     [field: SerializeField] public GameObject[] FirePoints { get; private set; }
 
     [field: SerializeField] public ProjectileShooter shooter { get; private set; }
     [field: SerializeField] public ProjectileAttackHitBox shotBullet { get; private set; }
+    [field: SerializeField] public SupernovaAttack supernova { get; private set; }
 
     [field: SerializeField] public ZenithAnimation mAnimator { get; private set; }
-    
+
     //シュウが追加しました。
     [SerializeField] private GameObject SuperAttackTarget;
 
     [SerializeField] public GameObject ZenithGore;
     public GameObject Player;
 
-    enum BossPhase
+    public DashFX dashFX;
+
+    public enum ZenithPhase
     {
         Phase1, Phase2
     }
-    [field: SerializeField]  BossPhase phase;
+    [field: SerializeField] public ZenithPhase phase { get; private set; }
 
     void Start()
     {
@@ -73,9 +76,15 @@ public class ZenithStateMachine : EnemyStateMachine
     }
 
  
-    private void HandleImpact()
-    {   
-        SwitchState(new ZenithImpactState(this));
+    private void HandleImpact(KnockbackEntry entry)
+    {
+        //スーパーノーバーで反撃可能な場合はスーパーノーバー状態に遷移する
+        if (brain.CanUseSupernova())
+        {
+            SwitchState(new ZenithSupernovaState(this));
+            return;
+        }
+        SwitchState(new ZenithImpactState(this, entry));
     }
 
     private void HandleDeath()
@@ -83,10 +92,10 @@ public class ZenithStateMachine : EnemyStateMachine
         Destroy(this.SuperAttackTarget); //シュウが追加しました
         switch(phase)
         {
-            case BossPhase.Phase1:
+            case ZenithPhase.Phase1:
                 SwitchState(new ZenithPhaseTransitionState(this));
                 break;
-            case BossPhase.Phase2:
+            case ZenithPhase.Phase2:
                 SwitchState(new ZenithDeadState(this));
                 break;
             default :
@@ -97,7 +106,7 @@ public class ZenithStateMachine : EnemyStateMachine
 
     public void DestroyZenith()
     {
-        SoundPlayer.Instance.PlaySE("G_Destroy");
+        //SoundPlayer.Instance.PlaySE("G_Destroy");
         //Instantiate(ZenithGore, this.transform.position, Quaternion.identity);
         BattleFinish();
         //Destroy(this.gameObject);

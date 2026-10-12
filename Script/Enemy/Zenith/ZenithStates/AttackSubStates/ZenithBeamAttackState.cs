@@ -13,6 +13,7 @@ public class ZenithBeamAttackState : ZenithBaseState
         SoundPlayer.Instance.PlaySE("Z_BeamCharge");
         stateMachine.mAnimator.Beam();
         fire = false;
+        //stateMachine.health.StartSuperArmor();
     }
 
     public override void Tick(float deltaTime)
@@ -41,5 +42,6 @@ public class ZenithBeamAttackState : ZenithBaseState
     public override void Exit()
     {
         stateMachine.hitboxController.DeactivateHitbox(ZenithHitboxType.Laser);
+        //stateMachine.health.EndSuperArmor();
     }
 }

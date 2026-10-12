@@ -15,6 +15,7 @@ public class WeaponController : BaseAttackHitBox
 {
     public event Action<int> hit;
 
+    public WeaponFX weaponFX;
     private void OnTriggerEnter(Collider other)
     {
         if(!TryAttack(other, out var target)){

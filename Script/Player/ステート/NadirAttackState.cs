@@ -1,4 +1,4 @@
-﻿/*
+/*
  * 作者：肖 世鴻（シュウ　サイホン）
  * 
  * First update: 2025/11/29
@@ -22,7 +22,7 @@ public class NadirAttackState : NadirBaseState
     //先行入力状態
     enum InputBuffer
     {
-        none, Step, Combo
+        none, Step, Combo, Move
     }
     InputBuffer buffer;
 
@@ -54,7 +54,14 @@ public class NadirAttackState : NadirBaseState
     //先行入力を受ける
     void HandleInput()
     {
-        //回避＞コンボ順で優先する
+        if (stateMachine.playerMove.IsPressed())
+        {
+            if (buffer != InputBuffer.Combo)
+            {
+                buffer = InputBuffer.Move;
+            }  
+        }
+        //回避＞コンボ順で優先するo
         if (stateMachine.playerAttack.WasPressedThisFrame())
         {
             buffer = InputBuffer.Combo;
@@ -65,10 +72,7 @@ public class NadirAttackState : NadirBaseState
             buffer = InputBuffer.Step;
         }
 
-        if (stateMachine.playerMove.IsPressed())
-        {
-            stateMachine.moveDirection = stateMachine.playerMove.ReadValue<Vector2>();
-        }
+ 
     }
     //先行入力を適用
     void TryBufferedInput()
@@ -100,6 +104,13 @@ public class NadirAttackState : NadirBaseState
                     stateMachine.SwitchState(new NadirStepState(stateMachine));
                 }
                 break;
+            case InputBuffer.Move:
+                if (phase == AttackPhase.Recover)
+                {
+                    buffer = InputBuffer.none;
+                    stateMachine.SwitchState(new NadirMoveState(stateMachine));
+                }
+                break;
             default :
                 break;
         }
@@ -108,6 +119,8 @@ public class NadirAttackState : NadirBaseState
     public override void Tick(float deltaTime)
     {
         float t = stateMachine.mAnimator.GetNormalizedTime(currentAttack.motionTag);
+
+        UpdateMoveVelocity(deltaTime);
 
         switch (phase)
         {
@@ -121,6 +134,7 @@ public class NadirAttackState : NadirBaseState
                     string se = "N_Swing" + (UnityEngine.Random.Range(0, 3)+1).ToString();
                     SoundPlayer.Instance.PlaySE(se, 1f, Random.Range(-0.2f, 0.2f));
                     stateMachine.weapon.Activate();
+                    stateMachine.weapon.weaponFX.Begin(); //エフェクト開始
                 }
                 break;
             case AttackPhase.Attack :
@@ -145,6 +159,12 @@ public class NadirAttackState : NadirBaseState
 
     public override void FixedTick(float deltaTime)
     {
+        ApplyMoveVelocity(deltaTime);
+        float speed = stateMachine.currentVelocity.magnitude;
+        stateMachine.mAnimator.Move(speed/stateMachine.runSpeed);
+
+        stateMachine.mAnimator.SetLowerBodyWeight(speed/stateMachine.walkSpeed);
+
         switch (phase)
         {
             case AttackPhase.Ready:
@@ -170,7 +190,8 @@ public class NadirAttackState : NadirBaseState
 
         //念の為コライダーオフ
         stateMachine.weapon.Deactivate();
-        Debug.Log("Attack End");
+        stateMachine.mAnimator.SetLowerBodyWeight(0f);
+        stateMachine.weapon.weaponFX.End(); //攻撃のエフェクト終了
     }
 
     //現在攻撃キャンセルができるか
@@ -181,12 +202,32 @@ public class NadirAttackState : NadirBaseState
     //攻撃開始（現在の攻撃にコンボデータを適用する)
     protected void StartAttack()
     {
+        stateMachine.weapon.weaponFX.End(); //前の攻撃のエフェクト終了
         phase = AttackPhase.Ready; //攻撃段階は準備
         buffer = InputBuffer.none; //先行入力はなし
         currentAttack = stateMachine.comboData.combo[comboIndex]; //次の攻撃情報の読み込み
         //攻撃情報を基にしたダメージ、モーション設定
         stateMachine.weapon.SetAttack(currentAttack.GetAttackInfo(stateMachine.gameObject)); 
         stateMachine.mAnimator.PlayMotion(currentAttack.motionTag, 0);
-        stateMachine.mAnimator.PlayWeaponMotion(currentAttack.motionTag, 0);
+        //stateMachine.mAnimator.PlayWeaponMotion(currentAttack.motionTag, 0);
+
+        stateMachine.currentVelocity = Vector3.ClampMagnitude(stateMachine.currentVelocity, GetMoveSpeedOnAttack(currentAttack.type));
+    }
+
+    float GetMoveSpeedOnAttack(AttackType attackType)
+    {
+        float moveSpeedOnAttack = 0;
+        switch(attackType)
+        {
+            case AttackType.Light:
+                moveSpeedOnAttack = 3.0f;
+            break;
+            case AttackType.Heavy:
+                moveSpeedOnAttack = 1.0f;
+            break;
+            default : 
+            break;
+        }
+        return moveSpeedOnAttack;
     }
 }

@@ -39,6 +39,7 @@ public class ZenithMeleeAttackState : ZenithBaseState
         else{
             stateMachine.mAnimator.MeleeLeft();
         }
+        stateMachine.health.StartSuperArmor();
     }
 
     public override void Tick(float deltaTime)
@@ -49,6 +50,7 @@ public class ZenithMeleeAttackState : ZenithBaseState
         {
             case AttackPhase.WindUp :
                 if(elapsedTime>=0.25f){
+                    SoundPlayer.Instance.PlaySE("Z_Melee", 1.0f, Random.Range(-0.2f, 0.2f));
                     if(attackSide==AttackSide.Right){
                         stateMachine.hitboxController.ActivateHitbox(ZenithHitboxType.RightWing);   
                     }
@@ -88,5 +90,6 @@ public class ZenithMeleeAttackState : ZenithBaseState
     {
         stateMachine.hitboxController.DeactivateHitbox(ZenithHitboxType.LeftWing);
         stateMachine.hitboxController.DeactivateHitbox(ZenithHitboxType.RightWing);
+        stateMachine.health.EndSuperArmor();
     }  
 }

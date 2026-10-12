@@ -16,7 +16,9 @@ public class ZenithBrain : MonoBehaviour
     float noDamageTime = 0;
     float decisionTimer = 0;
     const float DecisionInterval = 2f;
-    
+    private int rageLevel = 0; //スーパーノーバー攻撃のための怒りレベル
+    [SerializeField] private int maxRageLevel = 10; //最大怒りレベル
+
     private void Update() {
         if(noDamageTime < float.MaxValue - 1){
             noDamageTime += Time.deltaTime;
@@ -30,6 +32,7 @@ public class ZenithBrain : MonoBehaviour
     public void OnHit()
     {
         noDamageTime = 0;
+        rageLevel++;
     }
 
     public bool CanDecide()
@@ -101,5 +104,14 @@ public class ZenithBrain : MonoBehaviour
     {
         prevActionType = type;
         actionLog[type] = Time.time;
+    }
+    public bool CanUseSupernova()
+    {
+        if(rageLevel >= maxRageLevel)
+        {
+            rageLevel = 0;
+            return true;
+        } 
+        return false;
     }
 }

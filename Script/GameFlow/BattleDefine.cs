@@ -4,14 +4,15 @@ using UnityEngine;
 
 public enum AttackType
 {
-    Light, 
-    Heavy,
-    Projectile,
-    Counter,
-    Super,
-    Laser,
-    Bomb,
-    Slash
+    Light = 0, 
+    Heavy = 1,
+    Projectile = 2,
+    Counter = 3,
+    Super = 4,
+    Laser = 5,
+    Bomb = 6,
+    Slash = 7,
+    Supernova = 8
 }
 
 public struct AttackInfo

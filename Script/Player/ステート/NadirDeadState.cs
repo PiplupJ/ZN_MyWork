@@ -24,7 +24,7 @@ public class NadirDeadState : NadirBaseState
         stateMachine.moveDirection = Vector3.zero;
 
         stateMachine.action = "Dead";
-
+        //stateMachine.weapon.gameObject.transform.parent = null; //武器を分離
         stateMachine.mAnimator.Dead();
         stateMachine.transform.GetComponent<CharacterController>().enabled = false;
     }

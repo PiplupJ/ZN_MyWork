@@ -19,6 +19,7 @@ public class ZenithDoubleMeleeAttackState : ZenithBaseState
     {
         phase = AttackPhase.WindUp;
         stateMachine.mAnimator.DoubleMelee();
+        stateMachine.health.StartSuperArmor();
     }
 
     public override void Tick(float deltaTime)
@@ -35,7 +36,7 @@ public class ZenithDoubleMeleeAttackState : ZenithBaseState
                 }  
             break;
             case AttackPhase.Active :
-                if(elapsedTime>=0.3f){
+                if(elapsedTime>=0.35f){
 
                     stateMachine.hitboxController.DeactivateHitbox(ZenithHitboxType.LeftWing);               
                     phase = AttackPhase.Wait;
@@ -71,5 +72,6 @@ public class ZenithDoubleMeleeAttackState : ZenithBaseState
     {
         stateMachine.hitboxController.DeactivateHitbox(ZenithHitboxType.LeftWing);
         stateMachine.hitboxController.DeactivateHitbox(ZenithHitboxType.RightWing);
+        stateMachine.health.EndSuperArmor();
     }
 }

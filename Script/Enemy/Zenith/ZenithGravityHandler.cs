@@ -17,7 +17,7 @@ public class ZenithGravityHandler : MonoBehaviour
         defaultPos = this.transform.position;
     }
 
-    void Update()
+    void FixedUpdate()
     {
         HandleGravity();
         

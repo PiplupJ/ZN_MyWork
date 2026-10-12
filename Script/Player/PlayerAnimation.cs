@@ -37,6 +37,27 @@ public class PlayerAnimation : MonoBehaviour
     private static readonly int ParryHash = Animator.StringToHash("Parry");
     private static readonly int CounterHash = Animator.StringToHash("Counter");
 
+    private static readonly int ImpactHash = Animator.StringToHash("Impact");
+
+    //攻撃中移動用
+    private const string LowerBodyLayerName = "LowerBody";
+    private const float LowerBodyBlendSpeed = 10f;
+
+    private int lowerBodyLayer;
+    private float lowerBodyTarget;
+
+    private void Awake()
+    {
+        lowerBodyLayer = charaAnimator.GetLayerIndex(LowerBodyLayerName);
+    }
+
+    private void Update() 
+    {
+        float weight = charaAnimator.GetLayerWeight(lowerBodyLayer);
+        weight = Mathf.MoveTowards(weight, lowerBodyTarget, LowerBodyBlendSpeed*Time.deltaTime);
+        charaAnimator.SetLayerWeight(lowerBodyLayer, weight);    
+    }
+
     public void PlayMotion(int stateHash, float duration)
     {
         charaAnimator.CrossFadeInFixedTime(stateHash, duration);
@@ -69,14 +90,14 @@ public class PlayerAnimation : MonoBehaviour
     public void Move(float speed)
     {
         this.charaAnimator.SetFloat(SpeedHash, speed);
-        this.weaponAnimator.SetFloat(SpeedHash, speed);
+        //this.weaponAnimator.SetFloat(SpeedHash, speed);
     }
 
     //放置
     public void Idle()
     {
         PlayMotion(BlendTreeHash, BlendTreeFadeDuration);
-        PlayWeaponMotion(BlendTreeHash, BlendTreeFadeDuration);
+        //PlayWeaponMotion(BlendTreeHash, BlendTreeFadeDuration);
     }
 
     //回避
@@ -136,6 +157,16 @@ public class PlayerAnimation : MonoBehaviour
     public void Counter()
     {
         PlayMotion(CounterHash, 0.1f);
+    }
+
+    public void SetLowerBodyWeight(float weight)
+    {
+        lowerBodyTarget = weight;
+    }
+
+    public void Impact()
+    {
+        PlayMotion(ImpactHash, 0.1f);
     }
 
     public float GetNormalizedTime(string tag)

@@ -27,7 +27,10 @@ public enum SoundType
     HitHeavy = 12,
     HitSlash = 13,
     HitLaser = 14,
-    HitProjectile = 15
+    HitProjectile = 15,
+    HitSupernova = 16,
+    ChargeSE = 20,
+    SupernovaSE = 21
 }
 
 public class SoundPlayer : MonoBehaviour

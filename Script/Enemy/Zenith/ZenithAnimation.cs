@@ -32,6 +32,11 @@ public class ZenithAnimation : MonoBehaviour
     private static readonly int DeathMotionHash = Animator.StringToHash("Death");
 
     private static readonly int PhaseTransitionHash = Animator.StringToHash("PhaseTransition");
+
+    private static readonly int ReadyHash = Animator.StringToHash("Ready");
+
+    private static readonly int SupernovaStartHash = Animator.StringToHash("SupernovaStart");
+    private static readonly int SupernovaEndHash = Animator.StringToHash("SupernovaEnd");
     private const float IdleDuration = 0.1f;
 
     [SerializeField] private Animator charaAnimator;
@@ -124,6 +129,19 @@ public class ZenithAnimation : MonoBehaviour
     public void PhaseTransition()
     {
         PlayMotion(PhaseTransitionHash, IdleDuration);
+    }
+
+    public void Ready()
+    {
+        PlayMotion(ReadyHash, ActionDuration);
+    }
+    public void SupernovaStart()
+    {
+        PlayMotion(SupernovaStartHash, ActionDuration);
+    }
+    public void SupernovaEnd()
+    {
+        PlayMotion(SupernovaEndHash, IdleDuration);
     }
 
     public float GetNormalizedTime(string tagName)

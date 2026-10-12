@@ -22,6 +22,9 @@ public class PlayerHitSound
             case AttackType.Bomb:
                 SoundPlayer.Instance.PlaySE(SoundType.HitExplosion);
                 break;
+            case AttackType.Supernova:
+                SoundPlayer.Instance.PlaySE(SoundType.HitSupernova);
+                break;
             default :
                 break;
         }

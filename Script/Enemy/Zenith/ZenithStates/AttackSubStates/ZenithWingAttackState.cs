@@ -17,6 +17,7 @@ public class ZenithWingAttackState : ZenithBaseState
     {
         phase = AttackPhase.Ready;
         stateMachine.mAnimator.Wing();
+        stateMachine.health.StartSuperArmor();
     }
 
     public override void Tick(float deltaTime)
@@ -55,5 +56,6 @@ public class ZenithWingAttackState : ZenithBaseState
     {
         stateMachine.hitboxController.DeactivateHitbox(ZenithHitboxType.LeftWing);
         stateMachine.hitboxController.DeactivateHitbox(ZenithHitboxType.RightWing);
+        stateMachine.health.EndSuperArmor();
     }
 }

@@ -16,23 +16,23 @@ public enum ZenithActionType
 [CreateAssetMenu(fileName = "ZenithActionData", menuName = "Scriptable Objects/ZenithActionData")]
 public class ZenithActionData : ScriptableObject
 {
-    [Header("行動")]
+    [Header("行動の種類")]
     public ZenithActionType type;
 
-    [Header("行動の距離条件")]
+    [Header("行動可能な距離の範囲")]
     public float minRange;
     public float maxRange;
 
-    [Header("基本加重値")]
+    [Header("基本の出やすさ")]
     public float baseWeight;
 
-    [Header("体力状態による加重値")]
+    [Header("残りHPによる出やすさの補正")]
     public float lowHealthWeight;
 
-    [Header("プレイヤーが逃げ続ける場合の加重値")]
+    [Header("攻撃されなかった時間による出やすさの補正")]
     public float passivityWeight;
 
-    [Header("直前に同じ行動をした場合の加重値")]
+    [Header("前と同じ行動の出やすさに掛ける倍率")]
     public float repeatPenalty;
 
     [Header("クールダウン時間")]

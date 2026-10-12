@@ -47,9 +47,9 @@ public class GolemStateMachine : EnemyStateMachine
         health.Death -= HandleDeath;
     }
 
-    private void HandleImpact()
+    private void HandleImpact(KnockbackEntry entry)
     {   
-        SwitchState(new GolemImpactState(this));
+        SwitchState(new GolemImpactState(this, entry));
     }
 
     private void HandleDeath()

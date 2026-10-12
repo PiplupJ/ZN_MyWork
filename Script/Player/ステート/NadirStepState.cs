@@ -48,6 +48,8 @@ public class NadirStepState : NadirBaseState
         stateMachine.mAnimator.Step();
         SoundPlayer.Instance.PlaySE("N_Step01", 1f, Random.Range(-0.2f, 0.2f));
 
+        stateMachine.dashFX.Begin(stepDir);
+
         //Debug.Log(forward.ToString() + ", " + right.ToString());
 
         stateMachine.moveDirection = Vector2.zero;
@@ -108,5 +110,6 @@ public class NadirStepState : NadirBaseState
     public override void Exit()
     {
         stateMachine.action = "Null";
+        stateMachine.dashFX.End();
     }
 }

@@ -34,6 +34,8 @@ public class ZenithDashState : ZenithBaseState
 
         stateMachine.mAnimator.Dash();
 
+        stateMachine.dashFX.Begin(dashDir);
+
     }
 
     public override void Tick(float deltaTime)
@@ -49,12 +51,16 @@ public class ZenithDashState : ZenithBaseState
             stateMachine.SwitchState(new ZenithDashLandState(stateMachine));
             return;
         }
+    }
 
-        MoveWithFixedSpeed(deltaTime, stateMachine.dashSpeed, dashDir);
+    public override void FixedTick(float deltaTime)
+    {
+        MoveWithAccel(deltaTime, stateMachine.dashSpeed, dashDir);
     }
 
     public override void Exit()
     {
+        stateMachine.dashFX.End();
         stateMachine.currentVelocity = Vector3.zero;
     }
 }

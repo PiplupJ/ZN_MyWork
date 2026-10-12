@@ -11,9 +11,11 @@ public class GolemHP : MonoBehaviour, IDamageable
 
     [SerializeField] private int hitSoundCount;
 
+    [SerializeField] private KnockbackTable knockbackTable;
+
     mainUI mui;
 
-    public event Action OnImpact;
+    public event Action<KnockbackEntry> OnImpact;
     //public event Action TakingDamage;
     public event Action Death;
 
@@ -28,10 +30,14 @@ public class GolemHP : MonoBehaviour, IDamageable
     {
         if (health <= 0) return;   
 
-        if(attack.type == AttackType.Counter){
-            OnImpact?.Invoke();
-        }
         DealDamage(attack.damage);
+        if (health > 0)
+        {
+            if(knockbackTable.TryGetEntry(attack.type, out var entry))
+            {
+                OnImpact?.Invoke(entry);
+            }
+        }
     }
 
     private void DealDamage(int damage)
@@ -48,7 +54,6 @@ public class GolemHP : MonoBehaviour, IDamageable
                 Death.Invoke();
             }
         }
-        Debug.Log("GolemHP is"+health);
         mui.BoseHP(maxHealth, health);
   
     }

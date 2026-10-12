@@ -28,6 +28,9 @@ public class PlayerHP : MonoBehaviour, IDamageable
 
     [SerializeField] private PlayerParry parry;
 
+    [SerializeField] private KnockbackTable knockbackTable;
+    public event Action<KnockbackEntry> OnImpact;
+
     //シュウが追加しました
     private float mutekiTime = 3.0f;
     private float mutekiTimer = 0;
@@ -93,6 +96,12 @@ public class PlayerHP : MonoBehaviour, IDamageable
         playerHitSound.PlayHitSound (attack.type);
 
         DealDamage(attack.damage);
+
+        if (health > 0)
+        {
+            if(knockbackTable.TryGetEntry(attack.type, out var entry))
+                OnImpact?.Invoke(entry);
+        }
     }
 
     public void DealDamage(int damage)
@@ -146,6 +155,7 @@ public class PlayerHP : MonoBehaviour, IDamageable
     {
         GameManager.instance.Respawn += PlayerRespawn;
         mutekiTimer = 0;
+        EndMutekiState();
         canRespawn = false;
         UpdateHP?.Invoke();
     }
