@@ -1,97 +1,99 @@
 # このレポジトリはゲームの制作フォルダではありません。
 プロジェクトの中で、私が担当したソースコードを紹介するためのミラーレポジトリです。
 
-# 作品概要
+# ZN
 
-作品名：ZN
+## 1. 作品紹介
 
-ジャンル︓アクション
+攻撃・回避・パリィを活用し、ボスの撃破を目指すアクションゲームです。
+死亡するたびに強くなる仕組みと無敵の必殺技を取り入れ、繰り返し挑戦してクリアを目指せるようにしました。
 
-開発環境︓Unity6000.0.23f1、C#
+- 開発環境：Unity 6000.0.23f1 / C#
+- 制作期間：2025年9月17日〜2026年1月24日、2026年5月15日〜10月12日（改修）
+- 制作人数：当初8人（デザイナー5人・プログラマー3人）、後半5人（デザイナー2人・プログラマー3人）
+- 動作環境：Windows
 
-制作期間︓2025/09/17~2026/09/14
+## 2. 担当ソースコード
 
-制作人数：8人(デザイナー5⼈、プログラマー3⼈)
+以下はこのレポジトリ内のパスです。
 
-動作環境：Ｗindows
+### 新規作成
 
-[紹介動画](https://youtu.be/BWsIGpELnf4?si=OH70iGZ0NbgjPhLq)
+以下のフォルダー内のスクリプトを作成しました。
 
-# 担当箇所について
+- [`Script/Enemy/Base/`](Script/Enemy/Base/)
+- [`Script/Enemy/Golem/`](Script/Enemy/Golem/)
+- [`Script/Enemy/Zenith/`](Script/Enemy/Zenith/)
+- [`Script/GameFlow/AttackHitBox/`](Script/GameFlow/AttackHitBox/)
+- [`Script/GameFlow/Effect/`](Script/GameFlow/Effect/)
+- [`Script/GameFlow/Sound/`](Script/GameFlow/Sound/)
 
-敵キャラクター担当でしたが、2026年3月からプレイヤーキャラクターの担当者が抜けたため、プレイヤーキャラクターも担当しました。
+以下のファイルも作成しました。
 
-また、ゲーム進行用スクリプトの一部も作成しました。
+- `Script/GameFlow/BattleDefine.cs`
+- `Script/GameFlow/DebugSceneSwitcher.cs`
+- `Script/GameFlow/EnemyAttackHitBox.cs`
+- `Script/GameFlow/EnemyEffectHitbox.cs`
+- `Script/GameFlow/KnockbackTable.cs`
+- `Script/GameFlow/ProjectileAttackHitBox.cs`
+- `Script/GameFlow/ProjectileMoveData.cs`
+- `Script/GameFlow/ProjectileShooter.cs`
+- `Script/GameFlow/RocketMoveData.cs`
+- `Script/GameFlow/VideoSceneLoader.cs`
 
-**プレイヤースクリプト(Player)**
+### 引き継ぎ・改修を含む担当箇所
 
-前担当者が作成したスクリプトと私が作成・修正したスクリプトが混在していますので詳しくご説明します。
+- [`Script/Player/`](Script/Player/)
 
-カメラ
+プレイヤー制御は前担当者から引き継ぎました。このフォルダーには、前担当者のコードと、私が新規作成・改修したコードが混在しています。
 
-OccluderFader.cs 
-- 自分で作成しました。カメラとプレイヤーの間に障害物があれば、一時的に透明化してプレイヤー見えなくなることを防ぎます。
-- CameraController.csには、OccluderFader.csの適用のためのコードだけ追加しました。
+以下のファイルは新規作成
 
-プレイヤー
+- `Script/Player/カメラ/OccluderFader.cs` - CameraControllerから呼び出し
+- `Script/Player/攻撃処理/ComboData.cs`
+- `Script/Player/ステート/NadirCounterAttackState.cs`
+- `Script/Player/ステート/NadirImpactState.cs`
+- `Script/Player/ステート/NadirParryState.cs`
+- `Script/Player/ダメージ処理/ParryData.cs`
+- `Script/Player/ダメージ処理/PlayerDamageDelegate.cs`
+- `Script/Player/ダメージ処理/PlayerHitSound.cs`
+- `Script/Player/ダメージ処理/PlayerParry.cs`
 
-ComboData.cs 
-- 自分で作成しました。攻撃情報をリスト化したコンボデータを外部データとして作成するためのスクリプトです。
+以下のファイルを改修
 
-NadirAttackState.cs 
-- 前担当者のコードを修正しました。外部データ化したダメージとモーション情報を基に攻撃実行 / 攻撃実行し、向き入力がないなら、敵へ自動回転/enumで定義したインプット種類による先行入力対応/フレームの経過による攻撃の状態遷移(Ready→Active→Recover→Finish)があるように修正しました。
+- `Script/Player/ステート/NadirAttackState.cs` - 外部データを使った攻撃・先行入力・攻撃段階の状態遷移に対応
+- `Script/Player/NadirBaseState.cs` - 移動の加減速・スティックの傾きによる歩き・走りの切り替え、パリィへの遷移、攻撃時のボスへの回転を追加
+- `Script/Player/ステート/NadirMoveState.cs` - NadirBaseStateの加減速処理を使った移動に変更
+- `Script/Player/NadirStateMachine.cs` - 加減速・パリィ・ノックバックに必要な変数・関数追加
+- `Script/Player/ステート/NadirSuperAttackingState.cs` - 共通ヒットボックスに変更した必殺技弾に対応
+- `Script/Player/PlayerAnimation.cs` - Animationの切り替えをトリガーからCrossFadeInFixedTimeに変更
+- `Script/Player/ダメージ処理/PlayerHP.cs` - IDamageableの実装、パリィ判定・ノックバック・被弾サウンド・無敵状態の処理追加
+- `Script/Player/攻撃処理/WeaponController.cs` - 共通ヒットボックスを継承した仕様に変更。武器エフェクト管理処理追加
 
-NadirCounterAttackState.cs
-- 自分で作成しました。パリィ成功以降発動するカウンタ攻撃です。
+## 3. 素材出典
 
-NadirMoveState.cs
-- 前担当者のコードを修正しました。移動に加減速がなかったため、移動中の加減速やスティック角度による歩き・走りの転換を追加しました。
+### チームのデザイナーが制作
 
-NadirParryState.cs
-- 自分で作成しました。パリィを試す状態です。
+- 全キャラクター・ステージのモデル、UI用画像
 
-NadirStateMachine.cs
-- 前担当者のコードを修正しました。移動中の加減速やパリィの追加による変数や関数だけを追加しました。
+### 外部素材
 
-NadirSuperAttackingState.cs , NadirSuperStandbyState.cs
-- 前担当者のコードを修正しました。必殺技の弾が専用の仕様になっていたため、共通化したヒットボックスを使うように修正しました。
+サウンド
 
-Parrydata.cs
-- 自分で作成しました。パリィ判定をインスペクター上で編集できるように作成したスクリプトです。
+- https://assetstore.unity.com/packages/audio/music/rock/metal-pack-22333
+- https://assetstore.unity.com/packages/audio/music/rock/metal-drum-bass-music-pack-power-trip-387450
+- https://assetstore.unity.com/packages/audio/music/divine-sacred-choral-collection-344472
+- https://assetstore.unity.com/packages/audio/sound-fx/weapons/melee-weapons-sound-effects-pack-1-231154
+- https://assetstore.unity.com/packages/audio/sound-fx/weapons/laser-shot-sci-fi-pack-v1-142033
 
-PlayerAnimation.cs
-- 前担当者のコードを修正しました。モーション制御がトリガーでなっていたため、トリガー累積による重複再生の恐れがあり、AnimationControllerの修正も難しくなっていました。CrossFadeInFixedTimeを使うように修正しました。
+Skybox
 
-PlayerDamageDelegate.cs
-- 自分で作成しました。共通化した攻撃用ヒットボックスは攻撃を受けた対象が持っているIDamageableインタフェースを検出し、ダメージを与える仕様です。しかし、プレイヤーはUIや復活システムとの連携のため、プレイヤーがHPスクリプトを持たずにシングルトンとして存在していました。ですので、プレイヤーが攻撃を受けたらそれをシングルトンに送る通路が必要でした。
+- https://assetstore.unity.com/packages/3d/environments/aaa-space-nebula-hdri-pack-11-ultra-hd-8k-skyboxes-exr-jpg-390748
 
-PlayerHitSound.cs
-- 自分で作成しました。受けた攻撃に相当するサウンドを再生します。
+エフェクト
 
-PlayerHP.cs
-- 前担当者のコードを修正しました。パリィ判定用処理だけを追加しました。
+- https://assetstore.unity.com/packages/vfx/particles/hit-effects-284955
 
-PlayerParry.cs
-- 自分で作成しました。パリィ判定用スクリプトです。
+一部のモーション
 
-武器
-
-WeaponController.cs
-- 共通ヒットボックスを継承し、必殺技ゲージ更新というプレイヤー専用の処理を追加しました。
-
-**敵スクリプト(Enemy)**
-
-- Base - 基本的に敵のステートマシンやシーン作成に共有するスクリプト
-- Golem - GOLEMボス専用
-- Zenith - ラスボス専用
-
-**ゲーム進行用スクリプト(GameFlow)**
-- サウンド/エフェクト/共通化したヒットボックスなどのスクリプトです。
-
-私が最初から作成したスクリプトではなく、修正したコードをご説明します。
-
-GameManager.cs 
-- enumでLifeStateという状態を定義し、死亡演出が終わってからリスポーンできるように修正しました。
-
-UI_MainGame.cs
-- GameManagerの仕様変更に合わせてEnableRespawn()でRespawnイベントを実行し、デリゲートによってGameManagerのLifeStateが更新される処理だけを追加しました。
+- https://www.mixamo.com/
