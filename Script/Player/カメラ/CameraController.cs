@@ -23,9 +23,12 @@ public class CameraController : MonoBehaviour
         SuperAttack,
         LockOn,
         Death,
+        SuperCutIn,
     }
 
     public CameraMode mode;
+
+    private CameraMode prevMode; //スーパー以降戻るため
 
     private InputAction viewRotate;
     private InputAction viewLockOn;
@@ -75,6 +78,8 @@ public class CameraController : MonoBehaviour
     //private CinemachinePanTilt CMPanTilt;
 
     private OccluderFader occluderFader;
+
+    [SerializeField] private CinemachineCamera CutInCamera;
     private void Awake()
     {
         if (Instance != null)
@@ -157,7 +162,7 @@ public class CameraController : MonoBehaviour
         }
     }
 
-    private void FixedUpdate()
+    private void LateUpdate()
     {
 
         switch (mode) {
@@ -168,7 +173,7 @@ public class CameraController : MonoBehaviour
                 }
                 CameraRotate();
                 SetCameraZoom(normalZoom);
-                CameraLookAt();
+                //CameraLookAt();
 
                 break;
 
@@ -187,7 +192,7 @@ public class CameraController : MonoBehaviour
                 }
                 CameraRotate();
                 SetCameraZoom(superAttackZoom);
-                CameraLookAt();
+                //CameraLookAt();
                 break;
             case CameraMode.LockOn:
 
@@ -204,21 +209,24 @@ public class CameraController : MonoBehaviour
                 }
                 CameraRotate();
                 SetCameraZoom(normalZoom);
-                CameraLookAt();
+                //CameraLookAt();
 
                 break;
 
             case CameraMode.Death:
                 SetCameraZoom(deathZoom);
                 break;
+            case CameraMode.SuperCutIn:
+                break;
             default :
                 break;
         }
 
         //カメラの向きを目標に向ける
+        faderUpdate();
     }
 
-    private void LateUpdate() {
+    private void faderUpdate() {
 
         if(mode == CameraMode.Death)
         {
@@ -374,11 +382,10 @@ public class CameraController : MonoBehaviour
     }
 
     //カメラのズーム
-    private void SetCameraZoom(float _value)
+    private void SetCameraZoom(float distance)
     {
-        mCamera.fieldOfView = _value;
-
-        CM.GetComponent<CinemachineThirdPersonFollow>().CameraDistance = _value;
+        CM.GetComponent<CinemachineThirdPersonFollow>()
+            .CameraDistance = distance;
     }
 
     //ターゲットにロックオン
@@ -430,6 +437,7 @@ public class CameraController : MonoBehaviour
     //モード：必殺技
     public void SetSuperAttack()
     {
+        if(mode == CameraMode.SuperCutIn) { CutInCamera.gameObject.SetActive(false); }
         mode = CameraMode.SuperAttack;
         SetLockOnTarget();
     }
@@ -438,5 +446,35 @@ public class CameraController : MonoBehaviour
     private void PlayerDeathHandle()
     {
         mode = CameraMode.Death;
+    }
+
+    //カメラをプレイヤーへ
+    public void SetSuperCutIn()
+    {
+        mode = CameraMode.SuperCutIn;
+        CutInCamera.gameObject.SetActive(true);
+        CutInCamera.Priority = 100;
+
+    }
+
+    public void SaveCurrentMode()
+    {
+        prevMode = mode;
+    }
+
+    public void ReturnToPrevMode()
+    {
+        switch(prevMode)
+        {
+            case CameraMode.Normal:
+                SetNormal();
+                break;
+            case CameraMode.LockOn:
+                SetLockOn();
+                break;
+            default:
+                break;
+
+        }
     }
 }

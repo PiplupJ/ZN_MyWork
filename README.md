@@ -9,7 +9,7 @@
 死亡するたびに強くなる仕組みと無敵の必殺技を取り入れ、繰り返し挑戦してクリアを目指せるようにしました。
 
 - 開発環境：Unity 6000.0.23f1 / C#
-- 制作期間：2025年9月17日〜2026年1月24日、2026年5月15日〜10月12日（改修）
+- 制作期間：2025年9月17日〜2026年1月24日、2026年5月15日〜10月12日（改修）, 2026年11月2日~(2次改修)
 - 制作人数：当初8人（デザイナー5人・プログラマー3人）、後半5人（デザイナー2人・プログラマー3人）
 - 動作環境：Windows
 
@@ -58,6 +58,7 @@
 - `Script/Player/ダメージ処理/PlayerDamageDelegate.cs`
 - `Script/Player/ダメージ処理/PlayerHitSound.cs`
 - `Script/Player/ダメージ処理/PlayerParry.cs`
+- `Script/Player/ステート/必殺技` - フォルダのすべてのファイル
 
 以下のファイルを改修
 
@@ -65,10 +66,10 @@
 - `Script/Player/NadirBaseState.cs` - 移動の加減速・スティックの傾きによる歩き・走りの切り替え、パリィへの遷移、攻撃時のボスへの回転を追加
 - `Script/Player/ステート/NadirMoveState.cs` - NadirBaseStateの加減速処理を使った移動に変更
 - `Script/Player/NadirStateMachine.cs` - 加減速・パリィ・ノックバックに必要な変数・関数追加
-- `Script/Player/ステート/NadirSuperAttackingState.cs` - 共通ヒットボックスに変更した必殺技弾に対応
 - `Script/Player/PlayerAnimation.cs` - Animationの切り替えをトリガーからCrossFadeInFixedTimeに変更
 - `Script/Player/ダメージ処理/PlayerHP.cs` - IDamageableの実装、パリィ判定・ノックバック・被弾サウンド・無敵状態の処理追加
 - `Script/Player/攻撃処理/WeaponController.cs` - 共通ヒットボックスを継承した仕様に変更。武器エフェクト管理処理追加
+- `Script/Player/カメラ/CameraController.cs` - 必殺技用カットイン関数の追加
 
 ## 3. 素材出典
 
