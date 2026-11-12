@@ -22,12 +22,12 @@ public class NadirIdleState : NadirBaseState
         stateMachine.previousHorizontalVelocity = Vector3.zero;
 
         stateMachine.mAnimator.Idle();
-        stateMachine.mAnimator.Move(0);
+        
     }
 
     public override void Tick(float deltaTime)
     {
-       
+        stateMachine.mAnimator.Move(0);
         StepPreInput();
         Ground_BasicMovement();
     }

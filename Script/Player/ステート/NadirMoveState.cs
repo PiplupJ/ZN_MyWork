@@ -27,18 +27,31 @@ public class NadirMoveState : NadirBaseState
 
     public override void Tick(float deltaTime)
     {
-       UpdateMoveVelocity(deltaTime);
 
-        float currentSpeed = stateMachine.currentVelocity.magnitude; 
+        float animatorSpeed;
+        if (this.movementState == MovementState.Run)
+        {
+            animatorSpeed = 1.0f;
+        }
+        else if(this.movementState == MovementState.Walk){
+            animatorSpeed = 0.5f;
+        }
+        else
+        {
+            animatorSpeed = 0;
+        }
 
-        stateMachine.mAnimator.Move(currentSpeed/ stateMachine.runSpeed);
+        stateMachine.mAnimator.Move(animatorSpeed);
+        UpdateMoveVelocity(deltaTime);
+        ApplyMoveVelocity(deltaTime);
 
-        SFXCD += (currentSpeed/SFXlength)*deltaTime;
+        float currentSpeed = stateMachine.currentVelocity.magnitude * deltaTime;
+        SFXCD += (currentSpeed/SFXlength);
 
-        if (SFXCD >= 1f)
+        if (SFXCD >= 1.5f)
         {
             SoundPlayer.Instance.PlaySE("N_Walk01", 0.5f, Random.Range(-0.2f, 0.2f));
-            SFXCD -= 1f;
+            SFXCD -= 1.5f;
         }
 
         StepPreInput();
@@ -51,8 +64,6 @@ public class NadirMoveState : NadirBaseState
 
     public override void FixedTick(float deltaTime)
     {
-        
-        ApplyMoveVelocity(deltaTime);
 
         //ステッププレインプット
         if (stateMachine.stepBufferFrame > 0)

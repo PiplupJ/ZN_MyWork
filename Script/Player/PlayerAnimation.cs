@@ -29,6 +29,10 @@ public class PlayerAnimation : MonoBehaviour
     private static readonly int SuperStandByHash = Animator.StringToHash("SuperStandBy");
     private static readonly int SuperAttackHash = Animator.StringToHash("SuperAttack");
     private static readonly int SuperStayHash = Animator.StringToHash("SuperStay");
+
+    private static readonly int SuperCutInHash = Animator.StringToHash("SuperCutIn");
+    private static readonly int SuperStrikeHash = Animator.StringToHash("SuperStrike");
+
     private const float SuperFadeDuration = 0.1f;
 
     private static readonly int DeadHash = Animator.StringToHash("Dead");
@@ -56,6 +60,18 @@ public class PlayerAnimation : MonoBehaviour
         float weight = charaAnimator.GetLayerWeight(lowerBodyLayer);
         weight = Mathf.MoveTowards(weight, lowerBodyTarget, LowerBodyBlendSpeed*Time.deltaTime);
         charaAnimator.SetLayerWeight(lowerBodyLayer, weight);    
+    }
+
+    private bool IsOnEnteringState(Animator animator, int stateHash, int layer = 0)
+    {
+        if (animator.IsInTransition(layer))
+        {
+            var next = charaAnimator.GetNextAnimatorStateInfo(0);
+            return next.shortNameHash == stateHash || next.fullPathHash == stateHash ;
+        }
+
+        var curr = animator.GetCurrentAnimatorStateInfo(layer);
+        return curr.shortNameHash == stateHash || curr.fullPathHash == stateHash;
     }
 
     public void PlayMotion(int stateHash, float duration)
@@ -89,15 +105,18 @@ public class PlayerAnimation : MonoBehaviour
     //移動
     public void Move(float speed)
     {
-        this.charaAnimator.SetFloat(SpeedHash, speed);
-        //this.weaponAnimator.SetFloat(SpeedHash, speed);
+        this.charaAnimator.SetFloat(SpeedHash, speed, 0.1f, Time.deltaTime);
+        this.weaponAnimator.SetFloat(SpeedHash, speed, 0.1f, Time.deltaTime);
     }
 
     //放置
     public void Idle()
     {
+        if(!IsOnEnteringState(charaAnimator, BlendTreeHash))
         PlayMotion(BlendTreeHash, BlendTreeFadeDuration);
-        //PlayWeaponMotion(BlendTreeHash, BlendTreeFadeDuration);
+
+        if(!IsOnEnteringState(weaponAnimator, BlendTreeHash))
+        PlayWeaponMotion(BlendTreeHash, BlendTreeFadeDuration);
     }
 
     //回避
@@ -167,6 +186,16 @@ public class PlayerAnimation : MonoBehaviour
     public void Impact()
     {
         PlayMotion(ImpactHash, 0.1f);
+    }
+
+    public void SuperCutIn()
+    {
+        PlayMotion(SuperCutInHash, SuperFadeDuration);
+    }
+
+    public void SuperStrike()
+    {
+        PlayMotion(SuperStrikeHash, SuperFadeDuration);
     }
 
     public float GetNormalizedTime(string tag)

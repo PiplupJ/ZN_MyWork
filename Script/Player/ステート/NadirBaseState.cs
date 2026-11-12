@@ -64,7 +64,8 @@ public abstract class NadirBaseState : PlayerState
         //必殺技
         else if (stateMachine.canSuperAttack && stateMachine.playerSuper.WasPressedThisFrame())
         {
-            stateMachine.SwitchState(new NadirSuperStandbyState(stateMachine));
+            //stateMachine.SwitchState(new NadirSuperStandbyState(stateMachine));
+            stateMachine.SwitchState(new NadirSuperCutInState(stateMachine));
             return true;
         }
         //移動
@@ -82,44 +83,62 @@ public abstract class NadirBaseState : PlayerState
     }
 
     //キャラ回転
-    public void PlayerRotate()
+    public void PlayerRotate(float deltaTime)
     {
-        if (stateMachine.moveDirection.sqrMagnitude < 0.01f) { return; }
-        
+        if (stateMachine.moveDirection.sqrMagnitude < 0.01f)
+            return;
+
         switch (stateMachine.rotateMode)
         {
             case NadirStateMachine.RotateMode.Independent:
-                PlayerRotate_Independent();
+                PlayerRotate_Independent(deltaTime);
                 break;
 
             case NadirStateMachine.RotateMode.WithCamera:
-                PlayerRotate_WithCamera();
+                PlayerRotate_WithCamera(deltaTime);
                 break;
         }
     }
 
-    private void PlayerRotate_Independent()
+    private void PlayerRotate_Independent(float deltaTime)
     {
-        //カメラの方向を取得
-        Vector3 cameraForward = Vector3.ProjectOnPlane(stateMachine.mCamera.transform.forward, Vector3.up).normalized;
-        Quaternion forwardRotation = Quaternion.LookRotation(cameraForward);
-        Vector3 eulerRotation = forwardRotation.eulerAngles;
+        Vector3 cameraForward = Vector3.ProjectOnPlane(
+            stateMachine.mCamera.transform.forward,
+            Vector3.up
+        ).normalized;
 
-        //回転の量を追加
-        eulerRotation.y += (float)((Math.Atan2(stateMachine.moveDirection.x, stateMachine.moveDirection.y)) * 180 / Math.PI);
-        Quaternion deltaRotation = Quaternion.Euler(eulerRotation);
+        Vector3 cameraRight = Vector3.ProjectOnPlane(
+            stateMachine.mCamera.transform.right,
+            Vector3.up
+        ).normalized;
 
-        //回転
-        stateMachine.rotateTarget = deltaRotation;
-        stateMachine.transform.rotation = Quaternion.RotateTowards(stateMachine.transform.rotation, stateMachine.rotateTarget, stateMachine.rotateSpeed * Time.fixedDeltaTime);
+        Vector3 targetDirection =
+            cameraForward * stateMachine.moveDirection.y +
+            cameraRight * stateMachine.moveDirection.x;
+
+        if (targetDirection.sqrMagnitude < 0.0001f)
+            return;
+
+        stateMachine.rotateTarget = Quaternion.LookRotation(targetDirection);
+
+        stateMachine.transform.rotation = Quaternion.RotateTowards(
+            stateMachine.transform.rotation,
+            stateMachine.rotateTarget,
+            stateMachine.rotateSpeed * deltaTime
+        );
     }
 
-    private void PlayerRotate_WithCamera()
+    private void PlayerRotate_WithCamera(float deltaTime)
     {
-        stateMachine.transform.rotation = Quaternion.RotateTowards(stateMachine.transform.rotation,
-                        CameraController.Instance.transform.rotation,
-                        stateMachine.rotateSpeed * Time.fixedDeltaTime);
+        float cameraY = CameraController.Instance.transform.eulerAngles.y;
 
+        Quaternion targetRotation = Quaternion.Euler(0f, cameraY, 0f);
+
+        stateMachine.transform.rotation = Quaternion.RotateTowards(
+            stateMachine.transform.rotation,
+            targetRotation,
+            stateMachine.rotateSpeed * deltaTime
+        );
     }
 
     //目標に向かって回転
@@ -173,63 +192,84 @@ public abstract class NadirBaseState : PlayerState
     {
         Stop,
         Walk,
-        Run
+        Run,
+        Attack
     }
     protected MovementState movementState;
     protected void UpdateMoveVelocity(float deltaTime)
     {
-         Vector2 directionInput = stateMachine.playerMove.ReadValue<Vector2>();
-
-        stateMachine.moveDirection = directionInput.normalized;
+        Vector2 directionInput = stateMachine.playerMove.ReadValue<Vector2>();
 
         float inputMagnitude = directionInput.magnitude;
 
-        bool hasInput = inputMagnitude > 0.0001f;
+        bool hasInput = inputMagnitude > 0.1f;
 
-        if(hasInput){
-            if(inputMagnitude > 0.5f){
-                movementState = MovementState.Run;
-            }
-            else{
-                movementState = MovementState.Walk;
-            }
+        if (hasInput)
+        {
+            stateMachine.moveDirection = directionInput.normalized;
         }
-        else{
+        else
+        {
+            stateMachine.moveDirection = Vector2.zero;
+        }
+
+        if (!hasInput)
+        {
             movementState = MovementState.Stop;
+        }
+        else if (movementState == MovementState.Run)
+        {
+            movementState = inputMagnitude > 0.4f
+                ? MovementState.Run : MovementState.Walk;
+        }
+        else
+        {
+            movementState = inputMagnitude > 0.6f
+                ? MovementState.Run : MovementState.Walk;
         }
     }
 
     protected void ApplyMoveVelocity(float deltaTime)
     {
-                //移動量更新
+        //移動量更新
         float targetSpeed;
-        float acceleration;
 
         switch(movementState)
         {
             case MovementState.Run :
                 targetSpeed = stateMachine.runSpeed;
-                acceleration = stateMachine.runAcceleration;
                 break;
             case MovementState.Walk :
                 targetSpeed = stateMachine.walkSpeed;
-                acceleration = stateMachine.walkAcceleration;
                 break;
             default :
                 targetSpeed = 0;
-                acceleration = stateMachine.moveDeceleration;
                 break;
         }
 
-        Vector3 targetVelocity = targetSpeed * new Vector3(stateMachine.moveDirection.x, 0, stateMachine.moveDirection.y);
+        Vector3 targetVelocity = targetSpeed
+                                * new Vector3(stateMachine.moveDirection.x, 0, stateMachine.moveDirection.y);
 
-        if(targetVelocity.sqrMagnitude > stateMachine.currentVelocity.sqrMagnitude){
-            stateMachine.currentVelocity = Vector3.MoveTowards(stateMachine.currentVelocity, targetVelocity, acceleration * deltaTime);
+        float accel;
+        if(targetVelocity.sqrMagnitude < stateMachine.currentVelocity.sqrMagnitude)
+        {
+            accel = stateMachine.moveDeceleration;
         }
-        //減速
-        else{
-            stateMachine.currentVelocity = Vector3.MoveTowards(stateMachine.currentVelocity, targetVelocity, stateMachine.moveDeceleration*deltaTime);
+        else if(Vector3.Dot(targetVelocity, stateMachine.currentVelocity) < 0)
+        {
+            accel = stateMachine.moveDeceleration;
         }
+        else if(movementState == MovementState.Run)
+        {
+            accel = stateMachine.runAcceleration;
+        }
+        else
+        {
+            accel = stateMachine.walkAcceleration;
+        }
+
+        stateMachine.currentVelocity = Vector3.MoveTowards(
+            stateMachine.currentVelocity, targetVelocity, accel * deltaTime);
 
         //カメラの向きを取得
         Vector3 cameraForward = Vector3.ProjectOnPlane(stateMachine.mCamera.transform.forward, Vector3.up).normalized;
@@ -242,24 +282,23 @@ public abstract class NadirBaseState : PlayerState
         //前方
         moveVector += cameraForward * stateMachine.currentVelocity.z;
         
-
         //横
         moveVector += cameraRight * stateMachine.currentVelocity.x;
 
 
-        bool isWalkableSlope = (Vector3.Angle(Vector3.up, stateMachine.hitNormal) <= stateMachine.mCharacterController.slopeLimit);
+        //bool isWalkableSlope = (Vector3.Angle(Vector3.up, stateMachine.hitNormal) <= stateMachine.mCharacterController.slopeLimit);
 
-        if (isWalkableSlope)
-        {
-            moveVector = Vector3.ProjectOnPlane(moveVector, stateMachine.hitNormal);
-        }
+        //if (isWalkableSlope)
+        //{
+          //  moveVector = Vector3.ProjectOnPlane(moveVector, stateMachine.hitNormal);
+        //}
 
         //下
         moveVector += Vector3.up * gravity;
 
-        stateMachine.mCharacterController.Move(moveVector * deltaTime);
+        PlayerRotate(deltaTime);
 
-        PlayerRotate();
+        stateMachine.mCharacterController.Move(moveVector *deltaTime);
 
         stateMachine.previousHorizontalVelocity = moveVector;
     }

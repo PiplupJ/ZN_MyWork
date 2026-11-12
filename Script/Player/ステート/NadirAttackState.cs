@@ -121,6 +121,29 @@ public class NadirAttackState : NadirBaseState
         float t = stateMachine.mAnimator.GetNormalizedTime(currentAttack.motionTag);
 
         UpdateMoveVelocity(deltaTime);
+        ApplyMoveVelocity(deltaTime);
+
+        switch (phase)
+        {
+            case AttackPhase.Ready:
+                //向き入力があればその向きへ
+                if (stateMachine.moveDirection != Vector2.zero)
+                {
+                    PlayerRotate(deltaTime);
+                }
+                //ないならボスへ自動回転
+                else
+                {
+                    RotateToBoss();
+                }
+                break;
+            default:
+                break;
+        }
+
+        stateMachine.mAnimator.Move(0.5f);
+
+        stateMachine.mAnimator.SetLowerBodyWeight(0.5f);
 
         switch (phase)
         {
@@ -159,29 +182,9 @@ public class NadirAttackState : NadirBaseState
 
     public override void FixedTick(float deltaTime)
     {
-        ApplyMoveVelocity(deltaTime);
-        float speed = stateMachine.currentVelocity.magnitude;
-        stateMachine.mAnimator.Move(speed/stateMachine.runSpeed);
 
-        stateMachine.mAnimator.SetLowerBodyWeight(speed/stateMachine.walkSpeed);
 
-        switch (phase)
-        {
-            case AttackPhase.Ready:
-                //向き入力があればその向きへ
-                if (stateMachine.moveDirection != Vector2.zero)
-                {
-                    PlayerRotate();
-                }
-                //ないならボスへ自動回転
-                else
-                {
-                    RotateToBoss();
-                }
-                break;
-            default:
-                break;
-        }
+        
     }
 
     public override void Exit()
@@ -211,23 +214,5 @@ public class NadirAttackState : NadirBaseState
         stateMachine.mAnimator.PlayMotion(currentAttack.motionTag, 0);
         //stateMachine.mAnimator.PlayWeaponMotion(currentAttack.motionTag, 0);
 
-        stateMachine.currentVelocity = Vector3.ClampMagnitude(stateMachine.currentVelocity, GetMoveSpeedOnAttack(currentAttack.type));
-    }
-
-    float GetMoveSpeedOnAttack(AttackType attackType)
-    {
-        float moveSpeedOnAttack = 0;
-        switch(attackType)
-        {
-            case AttackType.Light:
-                moveSpeedOnAttack = 3.0f;
-            break;
-            case AttackType.Heavy:
-                moveSpeedOnAttack = 1.0f;
-            break;
-            default : 
-            break;
-        }
-        return moveSpeedOnAttack;
     }
 }

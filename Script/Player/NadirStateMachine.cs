@@ -64,7 +64,7 @@ public class NadirStateMachine : PlayerStateMachine
     public float moveDeceleration = 60f;
     [HideInInspector] public float moveSpeed = 0;   //移動速度
     [HideInInspector] public Vector2 moveDirection;      //移動方向
-    [HideInInspector] public Vector3 currentVelocity; 
+    [HideInInspector] public Vector3 currentVelocity = Vector3.zero;
 
     [Header("回転")]
     //回転
@@ -95,6 +95,8 @@ public class NadirStateMachine : PlayerStateMachine
 
 
     [Header("必殺技弾丸")]
+    public NadirUltimateKit ultimateKit;
+
     //弾丸は加速する
     public ProjectileAttackHitBox superBullet;  //必殺技の弾丸
     public AttackData superAttackData;
